@@ -6,9 +6,9 @@ import { Objekt } from '@/screens/Objekt'
 import { ObjektDetalj } from '@/screens/ObjektDetalj'
 import { Spekulanter } from '@/screens/Spekulanter'
 import { SpekulantProfil } from '@/screens/SpekulantProfil'
+import { Profil } from '@/screens/Profil'
 import { Rostdebrief } from '@/screens/Rostdebrief'
 import { SynkaVitec } from '@/screens/SynkaVitec'
-import { Profil } from '@/screens/Profil'
 
 function AppShell() {
   const location = useLocation()
@@ -26,9 +26,10 @@ function AppShell() {
             <Route path="/objekt/:id" element={<ObjektDetalj />} />
             <Route path="/spekulanter" element={<Spekulanter />} />
             <Route path="/spekulanter/:id" element={<SpekulantProfil />} />
+            <Route path="/profil" element={<Profil />} />
             <Route path="/debrief" element={<Rostdebrief />} />
             <Route path="/synka" element={<SynkaVitec />} />
-            <Route path="/profil" element={<Profil />} />
+            <Route path="*" element={<Hem />} />
           </Routes>
         </main>
         {!fullscreen && <BottomNav />}
