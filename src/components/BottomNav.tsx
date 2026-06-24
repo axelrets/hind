@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Building2, Users, User, Mic } from 'lucide-react'
+import { Home, Building2, Users, User, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -44,11 +44,11 @@ export function BottomNav() {
     <nav className="relative z-20 shrink-0 border-t border-border bg-background/95 backdrop-blur pb-safe">
       <button
         type="button"
-        onClick={() => navigate('/debrief')}
-        aria-label="Ny röstdebrief"
+        onClick={() => navigate('/assistent')}
+        aria-label="Fråga Hind"
         className="absolute -top-6 left-1/2 flex size-14 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background transition-transform active:scale-95"
       >
-        <Mic className="size-6" />
+        <Sparkles className="size-6" />
       </button>
       <div className="grid grid-cols-5 items-end px-2">
         {leftItems.map((it) => (

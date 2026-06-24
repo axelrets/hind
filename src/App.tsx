@@ -9,12 +9,14 @@ import { SpekulantProfil } from '@/screens/SpekulantProfil'
 import { Profil } from '@/screens/Profil'
 import { Rostdebrief } from '@/screens/Rostdebrief'
 import { SynkaVitec } from '@/screens/SynkaVitec'
+import { Assistent } from '@/screens/Assistent'
 
 function AppShell() {
   const location = useLocation()
   const fullscreen =
     location.pathname.startsWith('/debrief') ||
-    location.pathname.startsWith('/synka')
+    location.pathname.startsWith('/synka') ||
+    location.pathname.startsWith('/assistent')
 
   return (
     <MobileFrame>
@@ -29,6 +31,7 @@ function AppShell() {
             <Route path="/profil" element={<Profil />} />
             <Route path="/debrief" element={<Rostdebrief />} />
             <Route path="/synka" element={<SynkaVitec />} />
+            <Route path="/assistent" element={<Assistent />} />
             <Route path="*" element={<Hem />} />
           </Routes>
         </main>

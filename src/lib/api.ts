@@ -109,3 +109,54 @@ export async function structure(transcript: string): Promise<StructureResult> {
     return { data: DEMO_STRUCTURED, source: 'demo' }
   }
 }
+
+export interface ChatTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+/** Structured spekulant Claude saved straight from the chat (incl. its objekt). */
+export type ChatSaved = StructuredDebrief & { objektId: string }
+
+export interface ChatResult {
+  reply: string
+  saved: ChatSaved | null
+  source: AiSource
+}
+
+const DEMO_CHAT_REPLY =
+  'I demoläge svarar jag med ett exempel. Koppla på Supabase + API-nycklar ' +
+  'så kan jag svara på riktigt – ge dig överblick, skriva utkast och föra in ' +
+  'spekulanter direkt här i chatten.'
+
+/** Chat with Hind. Claude may save a spekulant via tool use (ChatSaved). */
+export async function chat(
+  messages: ChatTurn[],
+  objekt: { id: string; adress: string }[],
+): Promise<ChatResult> {
+  if (!supabaseEnabled) {
+    await wait(700)
+    return { reply: DEMO_CHAT_REPLY, saved: null, source: 'demo' }
+  }
+  try {
+    const res = await fetch(functionUrl('chat'), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        apikey: supabaseAnonKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ messages, objekt }),
+    })
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
+    const json = await res.json()
+    return {
+      reply: String(json.reply ?? ''),
+      saved: (json.saved as ChatSaved | null) ?? null,
+      source: json.source === 'demo' ? 'demo' : 'live',
+    }
+  } catch (err) {
+    console.warn('chat() föll tillbaka till demo:', err)
+    return { reply: DEMO_CHAT_REPLY, saved: null, source: 'demo' }
+  }
+}

@@ -10,3 +10,6 @@ verify_jwt = false
 
 [functions.structure]
 verify_jwt = false
+
+[functions.chat]
+verify_jwt = false
