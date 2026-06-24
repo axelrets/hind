@@ -160,3 +160,39 @@ export async function chat(
     return { reply: DEMO_CHAT_REPLY, saved: null, source: 'demo' }
   }
 }
+
+export interface RealtimeSession {
+  token: string
+  model: string
+  voice: string
+}
+
+/**
+ * Mint an ephemeral OpenAI Realtime token (via the realtime-session function)
+ * for the audio room. Returns null in demo mode or when Realtime isn't
+ * available, so the room falls back to the one-shot debrief.
+ */
+export async function createRealtimeSession(
+  objekt: { id: string; adress: string }[],
+  mode: 'guided' | 'free',
+): Promise<RealtimeSession | null> {
+  if (!supabaseEnabled) return null
+  try {
+    const res = await fetch(functionUrl('realtime-session'), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        apikey: supabaseAnonKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ objekt, mode }),
+    })
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
+    const json = await res.json()
+    if (json.source !== 'live' || !json.token) return null
+    return { token: json.token, model: json.model, voice: json.voice }
+  } catch (err) {
+    console.warn('createRealtimeSession() ej tillgänglig:', err)
+    return null
+  }
+}

@@ -7,7 +7,7 @@ import { ObjektDetalj } from '@/screens/ObjektDetalj'
 import { Spekulanter } from '@/screens/Spekulanter'
 import { SpekulantProfil } from '@/screens/SpekulantProfil'
 import { Profil } from '@/screens/Profil'
-import { Rostdebrief } from '@/screens/Rostdebrief'
+import { Rum } from '@/screens/Rum'
 import { SynkaVitec } from '@/screens/SynkaVitec'
 import { Assistent } from '@/screens/Assistent'
 
@@ -29,7 +29,7 @@ function AppShell() {
             <Route path="/spekulanter" element={<Spekulanter />} />
             <Route path="/spekulanter/:id" element={<SpekulantProfil />} />
             <Route path="/profil" element={<Profil />} />
-            <Route path="/debrief" element={<Rostdebrief />} />
+            <Route path="/debrief" element={<Rum />} />
             <Route path="/synka" element={<SynkaVitec />} />
             <Route path="/assistent" element={<Assistent />} />
             <Route path="*" element={<Hem />} />
