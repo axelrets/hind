@@ -34,50 +34,51 @@ export function Hem() {
   )
 
   return (
-    <div className="pb-8">
-      <header className="bg-gradient-to-br from-primary to-indigo-700 px-5 pb-7 pt-8 text-primary-foreground">
+    <div className="min-h-full bg-gradient-to-br from-violet-500 via-indigo-500 to-emerald-400 px-4 pb-12 pt-8">
+      {/* Greeting — directly on the gradient */}
+      <header className="px-1 text-white">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium capitalize opacity-80">{today}</p>
-          <span className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium">
+          <p className="text-sm font-medium capitalize text-white/80">{today}</p>
+          <span className="flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-medium backdrop-blur">
             <Sparkles className="size-3" />
             {supabaseEnabled ? 'AI live' : 'Demoläge'}
           </span>
         </div>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
+        <h1 className="mt-5 text-[27px] font-semibold leading-tight tracking-tight">
           {greeting()}, Hind 👋
         </h1>
-        <p className="mt-1.5 text-sm opacity-85">
+        <p className="mt-2 max-w-[300px] text-sm leading-relaxed text-white/85">
           Lugn morgon. Du har {seedAgenda.length} saker inbokade idag – fråga
-          mig om vad du vill ta tag i.
+          mig vad du vill ta tag i.
         </p>
       </header>
 
-      {/* ── Virtual Hind: what do you want to do? ── */}
-      <section className="-mt-4 px-4">
+      {/* Virtual Hind: what do you want to do? — frosted glass */}
+      <section className="mt-7">
         <Link
           to="/assistent"
-          className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5 shadow-md transition active:scale-[0.99]"
+          className="flex items-center gap-3 rounded-3xl border border-white/30 bg-white/20 p-4 shadow-xl backdrop-blur-xl transition active:scale-[0.99]"
         >
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-indigo-600 shadow-sm">
             <Sparkles className="size-5" />
           </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold leading-tight">
+          <span className="min-w-0 flex-1 text-white">
+            <span className="block text-[15px] font-semibold leading-tight">
               Vad vill du göra?
             </span>
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block truncate text-xs text-white/80">
               Fråga Hind eller berätta om en visning…
             </span>
           </span>
-          <ArrowRight className="size-5 shrink-0 text-muted-foreground/50" />
+          <ArrowRight className="size-5 shrink-0 text-white/70" />
         </Link>
-        <div className="mt-2.5 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {prompts.map((p) => (
             <button
               key={p}
               type="button"
               onClick={() => navigate('/assistent', { state: { q: p } })}
-              className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-sm transition active:scale-95"
+              className="rounded-full border border-white/30 bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition active:scale-95"
             >
               {p}
             </button>
@@ -85,9 +86,9 @@ export function Hem() {
         </div>
       </section>
 
-      {/* ── A calm overview of the day ── */}
-      <section className="px-4 pt-7">
-        <h2 className="mb-2.5 px-1 text-sm font-medium text-muted-foreground">
+      {/* A calm overview of the day — frosted glass panel */}
+      <section className="mt-7 rounded-3xl border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-xl">
+        <h2 className="mb-3 px-1 text-sm font-semibold text-foreground/70">
           Det här står på din agenda idag
         </h2>
         <ol className="space-y-2">
@@ -112,7 +113,7 @@ export function Hem() {
                   type="button"
                   onClick={() => navigate(target)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left shadow-sm transition active:scale-[0.99]',
+                    'flex w-full items-center gap-3 rounded-2xl border border-white/60 bg-white/70 p-3 text-left shadow-sm transition active:scale-[0.99]',
                     past && 'opacity-50',
                     isNext && 'border-primary/40 ring-1 ring-primary/15',
                   )}
