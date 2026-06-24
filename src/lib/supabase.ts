@@ -1,0 +1,21 @@
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+
+const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+
+/** True only when a real Supabase project is configured. */
+export const supabaseEnabled = Boolean(
+  url && anon && url.startsWith('http') && !url.includes('YOUR-PROJECT'),
+)
+
+export const supabaseUrl = url ?? ''
+export const supabaseAnonKey = anon ?? ''
+
+export const supabase: SupabaseClient | null = supabaseEnabled
+  ? createClient(url as string, anon as string)
+  : null
+
+/** URL of a deployed Edge Function, e.g. functionUrl('transcribe'). */
+export function functionUrl(name: string): string {
+  return `${supabaseUrl.replace(/\/$/, '')}/functions/v1/${name}`
+}

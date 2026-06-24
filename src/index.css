@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 12%;
+
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 16% 96%;
+    --secondary-foreground: 240 10% 20%;
+
+    --muted: 240 16% 96%;
+    --muted-foreground: 240 6% 45%;
+
+    --accent: 243 80% 96%;
+    --accent-foreground: 243 60% 40%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 56% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 70% 16%;
+
+    --border: 240 14% 92%;
+    --input: 240 14% 90%;
+    --ring: 243 75% 59%;
+
+    --radius: 0.85rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply text-foreground;
+    margin: 0;
+    background: #e9eaf0;
+    background-image: radial-gradient(
+        1200px 600px at 50% -10%,
+        hsl(243 75% 96%),
+        transparent 60%
+      ),
+      linear-gradient(180deg, #eef0f5, #e6e7ee);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: theme('fontFamily.sans');
+  }
+
+  /* Tabular figures for prices / numbers */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0px);
+  }
+}

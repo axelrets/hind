@@ -1,0 +1,12 @@
+# Local Supabase config. After creating the project, link it:
+#   supabase link --project-ref <your-project-ref>
+project_id = "hind"
+
+# Edge Functions called from the browser with the anon key. JWT verification is
+# disabled so the demo can call them directly. The OpenAI/Anthropic keys live as
+# function secrets (supabase secrets set ...), never on the client.
+[functions.transcribe]
+verify_jwt = false
+
+[functions.structure]
+verify_jwt = false
