@@ -9,6 +9,8 @@ import {
   Wallet,
   Banknote,
   HelpCircle,
+  Calendar,
+  PenLine,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +19,7 @@ import type {
   Intresseniva,
   Finansiering,
   TimelineTyp,
+  AgendaTyp,
   Prioritet,
 } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -95,4 +98,16 @@ export const timelineMeta: Record<
   anteckning: { icon: StickyNote, hue: 38, label: 'Anteckning' },
   bud: { icon: Gavel, hue: 0, label: 'Bud' },
   rostdebrief: { icon: Mic, hue: 243, label: 'Röstdebrief' },
+}
+
+export const agendaMeta: Record<
+  AgendaTyp,
+  { icon: LucideIcon; hue: number; label: string }
+> = {
+  visning: { icon: Users, hue: 243, label: 'Visning' },
+  samtal: { icon: Phone, hue: 152, label: 'Samtal' },
+  mote: { icon: Calendar, hue: 205, label: 'Möte' },
+  budgivning: { icon: Gavel, hue: 0, label: 'Budgivning' },
+  uppfoljning: { icon: Mail, hue: 38, label: 'Uppföljning' },
+  kontrakt: { icon: PenLine, hue: 270, label: 'Kontrakt' },
 }

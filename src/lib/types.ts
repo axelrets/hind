@@ -69,6 +69,26 @@ export interface NextStep {
   klar: boolean
 }
 
+// Today's calendar feed on the home screen. Static demo data — the "plate" the
+// agent sees each morning (showings, calls, meetings). Not persisted to Supabase.
+export type AgendaTyp =
+  | 'visning'
+  | 'samtal'
+  | 'mote'
+  | 'budgivning'
+  | 'uppfoljning'
+  | 'kontrakt'
+
+export interface AgendaItem {
+  id: string
+  start: string // ISO, today
+  titel: string
+  plats: string | null // location / one-line context
+  typ: AgendaTyp
+  objektId: string | null
+  speculantId: string | null
+}
+
 /** Shape Claude returns from a voice debrief (and the local fallback). */
 export interface StructuredDebrief {
   namn: string

@@ -3,6 +3,7 @@ import type {
   Speculant,
   TimelineEvent,
   NextStep,
+  AgendaItem,
 } from './types'
 
 // Dates are generated relative to "now" so the demo always looks current.
@@ -234,6 +235,55 @@ export const seedTimeline: TimelineEvent[] = [
     beskrivning: 'Vill boka privatvisning, kan på torsdag em.',
     occurredAt: at(-1, 8, 50),
     synced: true,
+  },
+]
+
+// Today's calendar — the "plate" shown first thing on the home screen.
+export const seedAgenda: AgendaItem[] = [
+  {
+    id: 'ag_bergsund_visning',
+    start: at(0, 9, 0),
+    titel: 'Visning – Bergsunds strand 31',
+    plats: 'Hornstull · 6 anmälda',
+    typ: 'visning',
+    objektId: 'obj_bergsund',
+    speculantId: null,
+  },
+  {
+    id: 'ag_anna_samtal',
+    start: at(0, 10, 30),
+    titel: 'Ring Anna Lindqvist',
+    plats: 'Stäm av budnivå inför budgivningen på Götgatan',
+    typ: 'samtal',
+    objektId: 'obj_gotgatan',
+    speculantId: 'spk_anna',
+  },
+  {
+    id: 'ag_kungsholm_foto',
+    start: at(0, 12, 0),
+    titel: 'Fotografering – Kungsholms strand 145',
+    plats: 'Kungsholmen · inför lansering',
+    typ: 'mote',
+    objektId: 'obj_kungsholm',
+    speculantId: null,
+  },
+  {
+    id: 'ag_sigtuna_privat',
+    start: at(0, 14, 30),
+    titel: 'Privatvisning – Sigtunagatan 6',
+    plats: 'Mikael Ek · Vasastan',
+    typ: 'visning',
+    objektId: 'obj_sigtuna',
+    speculantId: 'spk_mikael',
+  },
+  {
+    id: 'ag_gotgatan_bud',
+    start: at(0, 16, 0),
+    titel: 'Budgivning Götgatan 12',
+    plats: 'Ny budrunda öppnar – Anna och Johan med',
+    typ: 'budgivning',
+    objektId: 'obj_gotgatan',
+    speculantId: null,
   },
 ]
 
