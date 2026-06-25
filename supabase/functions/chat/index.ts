@@ -22,7 +22,13 @@ const SYSTEM =
   'strukturera och spara informationen – hitta inte på uppgifter som saknas, ' +
   'använd null eller tomma listor. Välj objektId från listan över objekt. ' +
   'Svara alltid kort, vänligt och konkret på svenska. När du sparat något, ' +
-  'bekräfta kort vad du gjort och föreslå nästa steg.'
+  'bekräfta kort vad du gjort och föreslå nästa steg. När mäklaren debriefar ' +
+  'efter en visning: agera som en intervjuare. Ställ korta, relevanta ' +
+  'följdfrågor för att täcka in varje spekulant – önskemål, invändningar, ' +
+  'intresse, lånelöfte/finansiering, budget, tidsplan och om de tänker lägga ' +
+  'bud. Fråga om det fanns fler intresserade så att ALLA spekulanter kommer ' +
+  'med. Anropa spara_spekulant en gång per spekulant och bedöm köpvilja 0–100 ' +
+  '(HET ≥ 70) och köpmognad (budredo/seriös/tidig/oklart).'
 
 const TOOL = {
   name: 'spara_spekulant',
@@ -45,6 +51,11 @@ const TOOL = {
       invandningar: { type: 'array', items: { type: 'string' } },
       intresseniva: { type: 'string', enum: ['hög', 'medel', 'låg'] },
       finansiering: { type: 'string', enum: ['kontant', 'lånelöfte', 'oklart'] },
+      kopvilja: {
+        type: 'number',
+        description: 'AI-bedömd köpvilja 0–100 (HET ≥ 70).',
+      },
+      kopmognad: { type: 'string', enum: ['budredo', 'seriös', 'tidig', 'oklart'] },
       sammanfattning: { type: 'string' },
       nastaSteg: {
         type: 'object',
@@ -67,6 +78,8 @@ const TOOL = {
       'invandningar',
       'intresseniva',
       'finansiering',
+      'kopvilja',
+      'kopmognad',
       'sammanfattning',
       'nastaSteg',
     ],

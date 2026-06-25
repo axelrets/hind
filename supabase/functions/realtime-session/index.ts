@@ -14,27 +14,32 @@ const SESSIONS_URL = 'https://api.openai.com/v1/realtime/sessions' // beta fallb
 function instructions(mode: string, objektList: string): string {
   const base =
     'Du är Hind, en varm och kompetent AI-medhjälpare åt en svensk ' +
-    'fastighetsmäklare. Du hjälper mäklaren att debriefa direkt efter en ' +
-    'visning. Prata naturlig, ledig svenska. Använd kundernas namn om de ' +
-    'nämns. När du har tillräckligt, anropa verktyget spara_spekulant med ' +
-    'strukturerad info (hitta inte på – använd null/tomma listor) och välj ' +
-    'objektId från listan. Bekräfta sedan kort vad du fångat och föreslå ' +
-    'nästa steg.' +
+    'fastighetsmäklare. Du intervjuar mäklaren direkt efter en visning för att ' +
+    'fånga ALLA spekulanter som var där. Prata naturlig, ledig svenska, en ' +
+    'fråga i taget. För varje spekulant vill du täcka in: namn, önskemål, ' +
+    'invändningar, intressenivå, finansiering (lånelöfte/kontant), budget, ' +
+    'tidsplan och om de tänker lägga bud. Ställ korta, relevanta följdfrågor ' +
+    'för att fylla luckor, men pressa inte – mäklaren vet inte alltid allt. ' +
+    'Bedöm varje spekulants köpvilja 0–100 (HET ≥ 70) och köpmognad ' +
+    '(budredo/seriös/tidig/oklart). Anropa verktyget spara_spekulant EN gång ' +
+    'per spekulant. Hitta inte på – använd null/tomma listor. Välj objektId ' +
+    'från listan.' +
     objektList
   if (mode === 'free') {
     return (
       base +
       ' Just nu vill mäklaren prata fritt. Var tyst och lyssna, avbryt inte. ' +
-      'Bekräfta bara kort vid behov. När mäklaren tystnat klart: sammanfatta ' +
-      'kort och anropa spara_spekulant.'
+      'När mäklaren tystnat klart: ställ vid behov någon kort följdfråga för ' +
+      'att täcka luckor, och anropa sedan spara_spekulant för varje spekulant.'
     )
   }
   return (
     base +
-    ' Inled med en kort hälsning och ställ EN fråga i taget: 1) Hur reagerade ' +
-    'kunderna på bostaden? 2) Hade de konkreta invändningar eller oro? ' +
-    '3) Vad är nästa steg – återkomma, lägga bud, eller släppa? Avsluta med ' +
-    '"Något mer viktigt?". Håll det under tre minuter och var varm, inte robotisk.'
+    ' Inled med en kort, lugn hälsning. Ta en spekulant i taget: börja med ' +
+    '"Vem var där och hur reagerade de?", följ upp om invändningar och ' +
+    'finansiering, och fråga sedan "Var det fler intresserade?" tills alla är ' +
+    'fångade. Avsluta varmt med "Något mer jag bör notera?". Håll det under ' +
+    'några minuter och var varm, inte robotisk.'
   )
 }
 
@@ -60,6 +65,11 @@ const TOOL = {
       invandningar: { type: 'array', items: { type: 'string' } },
       intresseniva: { type: 'string', enum: ['hög', 'medel', 'låg'] },
       finansiering: { type: 'string', enum: ['kontant', 'lånelöfte', 'oklart'] },
+      kopvilja: {
+        type: 'number',
+        description: 'AI-bedömd köpvilja 0–100 (HET ≥ 70).',
+      },
+      kopmognad: { type: 'string', enum: ['budredo', 'seriös', 'tidig', 'oklart'] },
       sammanfattning: { type: 'string' },
       nastaSteg: {
         type: 'object',
@@ -82,6 +92,8 @@ const TOOL = {
       'invandningar',
       'intresseniva',
       'finansiering',
+      'kopvilja',
+      'kopmognad',
       'sammanfattning',
       'nastaSteg',
     ],

@@ -44,6 +44,8 @@ export const DEMO_STRUCTURED: StructuredDebrief = {
   invandningar: ['Badrummet känns slitet'],
   intresseniva: 'hög',
   finansiering: 'lånelöfte',
+  kopvilja: 85,
+  kopmognad: 'budredo',
   sammanfattning:
     'Ny spekulant från visningen på Götgatan 12, där med sin sambo. Mycket ' +
     'intresserad av läget och balkongen, men tveksam till badrummet. Lånelöfte ' +

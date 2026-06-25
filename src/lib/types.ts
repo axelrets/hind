@@ -20,6 +20,8 @@ export interface Objekt {
 
 export type Intresseniva = 'hög' | 'medel' | 'låg'
 export type Finansiering = 'kontant' | 'lånelöfte' | 'oklart'
+// Buyer maturity — how close this spekulant is to acting.
+export type Kopmognad = 'budredo' | 'seriös' | 'tidig' | 'oklart'
 
 export interface Speculant {
   id: string
@@ -33,6 +35,8 @@ export interface Speculant {
   invandningar: string[] // objections
   intresseniva: Intresseniva
   finansiering: Finansiering
+  kopvilja: number | null // AI-bedömd köpvilja 0–100 (HET ≥ 70)
+  kopmognad: Kopmognad // buyer maturity
   sammanfattning: string | null
   createdAt: string // ISO
 }
@@ -100,6 +104,8 @@ export interface StructuredDebrief {
   invandningar: string[]
   intresseniva: Intresseniva
   finansiering: Finansiering
+  kopvilja: number // 0–100
+  kopmognad: Kopmognad
   sammanfattning: string
   nastaSteg: {
     beskrivning: string

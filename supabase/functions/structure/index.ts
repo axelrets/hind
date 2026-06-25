@@ -22,6 +22,8 @@ const DEMO_STRUCTURED = {
   invandningar: ['Badrummet känns slitet'],
   intresseniva: 'hög',
   finansiering: 'lånelöfte',
+  kopvilja: 85,
+  kopmognad: 'budredo',
   sammanfattning:
     'Ny spekulant från visningen på Götgatan 12, där med sin sambo. Mycket ' +
     'intresserad av läget och balkongen, men tveksam till badrummet. Lånelöfte ' +
@@ -38,8 +40,11 @@ const SYSTEM =
   'Du är en assistent åt en svensk fastighetsmäklare. Du får en röstdebrief ' +
   '(transkriberad) som mäklaren spelat in efter en visning. Strukturera ' +
   'innehållet om EN spekulant via verktyget. All text ska vara på svenska. ' +
-  'Saknas information, använd null eller tom lista – hitta inte på. nastaSteg ' +
-  'ska vara mäklarens konkreta nästa åtgärd för att föra affären framåt.'
+  'Saknas information, använd null eller tom lista – hitta inte på. Bedöm ' +
+  'köpvilja 0–100 (hur nära ett köp spekulanten är – väg in finansiering, ' +
+  'budget mot pris, uttryckt intresse, invändningar, tidsperspektiv och om ' +
+  'bud lagts) och köpmognad (budredo/seriös/tidig/oklart). nastaSteg ska vara ' +
+  'mäklarens konkreta nästa åtgärd för att föra affären framåt.'
 
 const TOOL = {
   name: 'spara_spekulant',
@@ -58,6 +63,14 @@ const TOOL = {
       finansiering: {
         type: 'string',
         enum: ['kontant', 'lånelöfte', 'oklart'],
+      },
+      kopvilja: {
+        type: 'number',
+        description: 'AI-bedömd köpvilja 0–100 (HET ≥ 70).',
+      },
+      kopmognad: {
+        type: 'string',
+        enum: ['budredo', 'seriös', 'tidig', 'oklart'],
       },
       sammanfattning: { type: 'string' },
       nastaSteg: {
@@ -80,6 +93,8 @@ const TOOL = {
       'invandningar',
       'intresseniva',
       'finansiering',
+      'kopvilja',
+      'kopmognad',
       'sammanfattning',
       'nastaSteg',
     ],

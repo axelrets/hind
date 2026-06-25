@@ -5,7 +5,14 @@ import { PageHeader } from '@/components/PageHeader'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { IntensityBadge, FinansieringBadge } from '@/components/meta'
+import {
+  IntensityBadge,
+  FinansieringBadge,
+  KopmognadBadge,
+  HetBadge,
+  isHet,
+} from '@/components/meta'
+import { KopviljaRing } from '@/components/KopviljaRing'
 import { NextStepCard } from '@/components/NextStepCard'
 import { Timeline } from '@/components/Timeline'
 import { ObjektThumb } from '@/components/ObjektThumb'
@@ -81,9 +88,17 @@ export function SpekulantProfil() {
           >
             {initials(speculant.namn)}
           </Avatar>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+            {isHet(speculant.kopvilja) && <HetBadge />}
+            <KopmognadBadge v={speculant.kopmognad} />
             <IntensityBadge niva={speculant.intresseniva} />
             <FinansieringBadge v={speculant.finansiering} />
+          </div>
+          <div className="shrink-0 text-center">
+            <KopviljaRing score={speculant.kopvilja} size={52} />
+            <p className="mt-0.5 text-[10px] font-medium text-muted-foreground">
+              köpvilja
+            </p>
           </div>
         </div>
 

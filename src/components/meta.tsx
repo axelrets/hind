@@ -18,6 +18,7 @@ import type {
   ObjektStatus,
   Intresseniva,
   Finansiering,
+  Kopmognad,
   TimelineTyp,
   AgendaTyp,
   Prioritet,
@@ -50,6 +51,40 @@ const intensityMap: Record<
 
 export function IntensityBadge({ niva }: { niva: Intresseniva }) {
   return <Badge variant={intensityMap[niva]}>Intresse: {niva}</Badge>
+}
+
+const kopmognadMap: Record<
+  Kopmognad,
+  { label: string; variant: 'success' | 'warning' | 'muted' }
+> = {
+  budredo: { label: 'Budredo', variant: 'success' },
+  seriös: { label: 'Seriös köpare', variant: 'warning' },
+  tidig: { label: 'Tidig i processen', variant: 'muted' },
+  oklart: { label: 'Oklar mognad', variant: 'muted' },
+}
+
+export function KopmognadBadge({ v }: { v: Kopmognad }) {
+  const m = kopmognadMap[v]
+  return <Badge variant={m.variant}>{m.label}</Badge>
+}
+
+/** köpvilja (0–100) → ring/text colour. HET ≥ 70. */
+export function kopviljaColor(score: number | null): string {
+  if (score === null) return 'hsl(220 9% 64%)'
+  if (score >= 70) return 'hsl(142 71% 38%)' // grön – HET
+  if (score >= 40) return 'hsl(38 92% 50%)' // amber
+  return 'hsl(220 9% 55%)' // grå
+}
+
+export const isHet = (score: number | null): boolean =>
+  score !== null && score >= 70
+
+export function HetBadge() {
+  return (
+    <Badge className="border-transparent bg-destructive/15 font-semibold text-destructive">
+      HET
+    </Badge>
+  )
 }
 
 const finansieringMap: Record<

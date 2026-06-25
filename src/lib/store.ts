@@ -52,6 +52,8 @@ export const useStore = create<HindState>((set) => ({
       invandningar: d.invandningar,
       intresseniva: d.intresseniva,
       finansiering: d.finansiering,
+      kopvilja: d.kopvilja,
+      kopmognad: d.kopmognad,
       sammanfattning: d.sammanfattning,
       createdAt: now,
     }

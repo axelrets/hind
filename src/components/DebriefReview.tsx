@@ -8,6 +8,7 @@ import type {
   StructuredDebrief,
   Intresseniva,
   Finansiering,
+  Kopmognad,
   Prioritet,
 } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -159,6 +160,35 @@ export function Review({
             { value: 'lånelöfte', label: 'Lånelöfte' },
             { value: 'kontant', label: 'Kontant' },
             { value: 'oklart', label: 'Oklart' },
+          ]}
+        />
+      </Field>
+
+      <Field label="Köpvilja (0–100)">
+        <Input
+          inputMode="numeric"
+          value={form.kopvilja}
+          onChange={(e) =>
+            set(
+              'kopvilja',
+              Math.max(
+                0,
+                Math.min(100, Number(e.target.value.replace(/\D/g, '')) || 0),
+              ),
+            )
+          }
+        />
+      </Field>
+
+      <Field label="Köpmognad">
+        <Seg<Kopmognad>
+          value={form.kopmognad}
+          onChange={(v) => set('kopmognad', v)}
+          options={[
+            { value: 'budredo', label: 'Budredo' },
+            { value: 'seriös', label: 'Seriös' },
+            { value: 'tidig', label: 'Tidig' },
+            { value: 'oklart', label: 'Oklar' },
           ]}
         />
       </Field>

@@ -3,13 +3,9 @@ import { ChevronRight } from 'lucide-react'
 import type { Speculant } from '@/lib/types'
 import { useStore } from '@/lib/store'
 import { Avatar } from '@/components/ui/avatar'
-import { cn, formatMkr, hueFromString, initials } from '@/lib/utils'
-
-const dotColor: Record<Speculant['intresseniva'], string> = {
-  hög: 'bg-success',
-  medel: 'bg-warning',
-  låg: 'bg-muted-foreground/40',
-}
+import { KopviljaRing } from '@/components/KopviljaRing'
+import { isHet, HetBadge } from '@/components/meta'
+import { formatMkr, hueFromString, initials } from '@/lib/utils'
 
 export function SpeculantListItem({ speculant }: { speculant: Speculant }) {
   const objekt = useStore((s) =>
@@ -25,18 +21,14 @@ export function SpeculantListItem({ speculant }: { speculant: Speculant }) {
       to={`/spekulanter/${speculant.id}`}
       className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-sm transition active:scale-[0.99]"
     >
+      <KopviljaRing score={speculant.kopvilja} size={44} />
       <Avatar hue={hueFromString(speculant.namn)}>
         {initials(speculant.namn)}
       </Avatar>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <p className="truncate font-semibold">{speculant.namn}</p>
-          <span className="flex items-center gap-1 text-xs capitalize text-muted-foreground">
-            <span
-              className={cn('size-2 rounded-full', dotColor[speculant.intresseniva])}
-            />
-            {speculant.intresseniva}
-          </span>
+          {isHet(speculant.kopvilja) && <HetBadge />}
         </div>
         <p className="truncate text-[13px] text-muted-foreground">
           {objekt ? objekt.adress : 'Ingen koppling'}

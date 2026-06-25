@@ -18,11 +18,13 @@ export interface RealtimeHandlers {
   onState?: (s: RoomState) => void
   onUserTranscript?: (text: string) => void
   onHindCaption?: (text: string) => void
+  /** Fired once per spekulant Hind saves during the conversation. */
+  onSaved?: (args: Record<string, unknown>) => void
   onError?: (msg: string) => void
 }
 
 export interface FinishResult {
-  saved: Record<string, unknown> | null
+  saved: Record<string, unknown>[]
   transcript: string
 }
 
@@ -34,7 +36,7 @@ export class HindRealtime {
 
   private hindBuffer = ''
   private transcript = ''
-  private savedArgs: Record<string, unknown> | null = null
+  private savedList: Record<string, unknown>[] = []
   private finishResolve: ((r: FinishResult) => void) | null = null
 
   private h: RealtimeHandlers
@@ -136,7 +138,7 @@ export class HindRealtime {
     if (!this.finishResolve) return
     const resolve = this.finishResolve
     this.finishResolve = null
-    resolve({ saved: this.savedArgs, transcript: this.transcript.trim() })
+    resolve({ saved: this.savedList, transcript: this.transcript.trim() })
   }
 
   private onEvent(raw: string) {
@@ -169,14 +171,30 @@ export class HindRealtime {
         }
         break
       }
-      case 'response.function_call_arguments.done':
+      case 'response.function_call_arguments.done': {
+        let args: Record<string, unknown> = {}
         try {
-          this.savedArgs = JSON.parse((ev.arguments as string) ?? '{}')
+          args = JSON.parse((ev.arguments as string) ?? '{}')
         } catch {
           /* ignore */
         }
-        this.settleFinish()
+        this.savedList.push(args)
+        this.h.onSaved?.(args)
+        // Return a tool result so Hind can move on to the next spekulant.
+        const callId = (ev.call_id as string) ?? ''
+        if (callId) {
+          this.send({
+            type: 'conversation.item.create',
+            item: {
+              type: 'function_call_output',
+              call_id: callId,
+              output: '{"ok":true}',
+            },
+          })
+          this.send({ type: 'response.create' })
+        }
         break
+      }
       case 'response.done':
         if (this.finishResolve) this.settleFinish()
         break

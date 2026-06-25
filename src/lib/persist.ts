@@ -27,6 +27,8 @@ export async function persistDebrief(
       invandningar: speculant.invandningar,
       intresseniva: speculant.intresseniva,
       finansiering: speculant.finansiering,
+      kopvilja: speculant.kopvilja,
+      kopmognad: speculant.kopmognad,
       sammanfattning: speculant.sammanfattning,
       created_at: speculant.createdAt,
     })

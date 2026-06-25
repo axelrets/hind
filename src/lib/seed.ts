@@ -84,6 +84,8 @@ export const seedSpeculanter: Speculant[] = [
     finansiering: 'lånelöfte',
     sammanfattning:
       'Mycket intresserad efter visningen. Bor i närområdet och vill snabbt vidare. Lånelöfte klart upp till 5,2 mkr.',
+    kopvilja: 88,
+    kopmognad: 'budredo',
     createdAt: at(-2, 15, 10),
   },
   {
@@ -100,6 +102,8 @@ export const seedSpeculanter: Speculant[] = [
     finansiering: 'kontant',
     sammanfattning:
       'Kontantköpare, men tveksam till läget på gatuplan. Har lagt ett första bud under utgångspris.',
+    kopvilja: 64,
+    kopmognad: 'seriös',
     createdAt: at(-2, 16, 30),
   },
   {
@@ -116,6 +120,8 @@ export const seedSpeculanter: Speculant[] = [
     finansiering: 'lånelöfte',
     sammanfattning:
       'Barnfamilj som söker i området. Kommer på nästa visning med partnern.',
+    kopvilja: 72,
+    kopmognad: 'seriös',
     createdAt: at(-1, 11, 0),
   },
   {
@@ -131,6 +137,8 @@ export const seedSpeculanter: Speculant[] = [
     intresseniva: 'medel',
     finansiering: 'lånelöfte',
     sammanfattning: 'Gillar läget vid vattnet. Avvaktar besiktningsprotokoll.',
+    kopvilja: 58,
+    kopmognad: 'seriös',
     createdAt: at(-3, 13, 20),
   },
   {
@@ -146,6 +154,8 @@ export const seedSpeculanter: Speculant[] = [
     intresseniva: 'låg',
     finansiering: 'oklart',
     sammanfattning: 'Tidig i processen, vill se fler objekt först.',
+    kopvilja: 28,
+    kopmognad: 'tidig',
     createdAt: at(-4, 18, 5),
   },
   {
@@ -161,6 +171,8 @@ export const seedSpeculanter: Speculant[] = [
     intresseniva: 'hög',
     finansiering: 'lånelöfte',
     sammanfattning: 'Förstagångsköpare, redo att lägga bud vid rätt objekt.',
+    kopvilja: 80,
+    kopmognad: 'budredo',
     createdAt: at(-1, 9, 45),
   },
 ]
