@@ -11,23 +11,22 @@ import { harledForslag, type Forslag } from '@/lib/forslag'
  *  the captured history — all derived from the store. */
 export function HindsTidslinje({ objektId }: { objektId: string }) {
   const navigate = useNavigate()
+  // Select stable references; derive the per-object slices in the body so the
+  // selectors never return a fresh array (which would loop useSyncExternalStore).
   const objekt = useStore((s) => s.objekt.find((o) => o.id === objektId))
-  const speculanter = useStore((s) =>
-    s.speculanter.filter((p) => p.objektId === objektId),
-  )
-  const dokument = useStore((s) =>
-    s.dokument.filter((d) => d.objektId === objektId),
-  )
-  const steps = useStore((s) =>
-    s.nextSteps.filter((n) => n.objektId === objektId && !n.klar),
-  )
-  const events = useStore((s) =>
-    s.timeline
-      .filter((e) => e.objektId === objektId)
-      .slice()
-      .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)),
-  )
+  const allSpeculanter = useStore((s) => s.speculanter)
+  const allDokument = useStore((s) => s.dokument)
+  const allSteps = useStore((s) => s.nextSteps)
+  const allTimeline = useStore((s) => s.timeline)
   const logHandelse = useStore((s) => s.logHandelse)
+
+  const speculanter = allSpeculanter.filter((p) => p.objektId === objektId)
+  const dokument = allDokument.filter((d) => d.objektId === objektId)
+  const steps = allSteps.filter((n) => n.objektId === objektId && !n.klar)
+  const events = allTimeline
+    .filter((e) => e.objektId === objektId)
+    .slice()
+    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
 
   const [drafting, setDrafting] = useState<string | null>(null)
   const [draftText, setDraftText] = useState('')

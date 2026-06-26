@@ -19,17 +19,17 @@ export function ObjektDetalj() {
   const { id } = useParams()
   const navigate = useNavigate()
   const objekt = useStore((s) => s.objekt.find((o) => o.id === id))
-  const speculanter = useStore((s) =>
-    s.speculanter.filter((p) => p.objektId === id),
-  )
-  const dokument = useStore((s) => s.dokument.filter((d) => d.objektId === id))
+  const allSpeculanter = useStore((s) => s.speculanter)
+  const allDokument = useStore((s) => s.dokument)
+  const allSteps = useStore((s) => s.nextSteps)
   const draftDokument = useStore((s) => s.draftDokument)
-  const steps = useStore((s) =>
-    s.nextSteps
-      .filter((n) => n.objektId === id && !n.klar)
-      .slice()
-      .sort((a, b) => prioRank(b.prioritet) - prioRank(a.prioritet)),
-  )
+
+  const speculanter = allSpeculanter.filter((p) => p.objektId === id)
+  const dokument = allDokument.filter((d) => d.objektId === id)
+  const steps = allSteps
+    .filter((n) => n.objektId === id && !n.klar)
+    .slice()
+    .sort((a, b) => prioRank(b.prioritet) - prioRank(a.prioritet))
 
   if (!objekt) {
     return (

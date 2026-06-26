@@ -51,15 +51,13 @@ export function SpekulantProfil() {
   const objekt = useStore((s) =>
     s.objekt.find((o) => o.id === speculant?.objektId),
   )
-  const events = useStore((s) =>
-    s.timeline
-      .filter((e) => e.speculantId === id)
-      .slice()
-      .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt)),
-  )
-  const steps = useStore((s) =>
-    s.nextSteps.filter((n) => n.speculantId === id && !n.klar),
-  )
+  const allTimeline = useStore((s) => s.timeline)
+  const allSteps = useStore((s) => s.nextSteps)
+  const events = allTimeline
+    .filter((e) => e.speculantId === id)
+    .slice()
+    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
+  const steps = allSteps.filter((n) => n.speculantId === id && !n.klar)
 
   if (!speculant) {
     return (

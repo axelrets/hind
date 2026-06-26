@@ -49,8 +49,9 @@ export function DokumentDetalj() {
   const objekt = useStore((s) =>
     s.objekt.find((o) => o.id === dok?.objektId),
   )
-  const speculanter = useStore((s) =>
-    s.speculanter.filter((p) => p.objektId === dok?.objektId),
+  const allSpeculanter = useStore((s) => s.speculanter)
+  const speculanter = allSpeculanter.filter(
+    (p) => p.objektId === dok?.objektId,
   )
 
   if (!dok) {
