@@ -1,5 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Mic, FileText, ChevronRight, Sparkles } from 'lucide-react'
+import { Mic, FileText, ChevronRight, Sparkles, Phone } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHeader } from '@/components/PageHeader'
 import { ObjektThumb } from '@/components/ObjektThumb'
@@ -8,7 +9,7 @@ import { NextStepCard } from '@/components/NextStepCard'
 import { SpeculantListItem } from '@/components/SpeculantListItem'
 import { Timeline } from '@/components/Timeline'
 import { Button } from '@/components/ui/button'
-import { dokumentMeta } from '@/lib/dokument'
+import { dokumentMeta, saknadeKrav } from '@/lib/dokument'
 import type { DokumentTyp } from '@/lib/types'
 import { formatSEK } from '@/lib/utils'
 import { prioRank } from '@/lib/sort'
@@ -46,6 +47,44 @@ export function ObjektDetalj() {
     )
   }
 
+  const heta = speculanter.filter((s) => (s.kopvilja ?? 0) >= 70)
+  const hottest = [...speculanter].sort(
+    (a, b) => (b.kopvilja ?? 0) - (a.kopvilja ?? 0),
+  )[0]
+  const docFlags = dokument
+    .map((d) => ({ d, saknas: saknadeKrav(d).length }))
+    .filter((x) => x.saknas > 0)
+
+  const statusSummary = [
+    `${speculanter.length} spekulanter`,
+    heta.length ? `${heta.length} heta` : null,
+    `${steps.length} öppna uppgifter`,
+    docFlags.length
+      ? `${docFlags.length} dokument att komplettera`
+      : 'dokument kompletta',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  // Suggested next moves, derived from the captured data on this object.
+  const drag: { id: string; text: string; to: string; icon: LucideIcon }[] = []
+  if (hottest && (hottest.kopvilja ?? 0) >= 70) {
+    drag.push({
+      id: `call-${hottest.id}`,
+      text: `Ring ${hottest.namn} – köpvilja ${hottest.kopvilja}`,
+      to: `/spekulanter/${hottest.id}`,
+      icon: Phone,
+    })
+  }
+  docFlags.forEach((f) =>
+    drag.push({
+      id: f.d.id,
+      text: `Komplettera ${dokumentMeta[f.d.typ].titel} – ${f.saknas} punkter saknas`,
+      to: `/dokument/${f.d.id}`,
+      icon: FileText,
+    }),
+  )
+
   return (
     <div className="pb-6">
       <PageHeader title={objekt.adress} subtitle={objekt.omrade} back />
@@ -73,6 +112,41 @@ export function ObjektDetalj() {
           </button>
         </Button>
       </div>
+
+      <section className="px-4 pb-4">
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+          <div className="mb-1.5 flex items-center gap-1.5">
+            <Sparkles className="size-4 text-primary" />
+            <h2 className="text-sm font-semibold">Hinds lägesbild</h2>
+          </div>
+          <p className="text-sm text-foreground/80">{statusSummary}</p>
+          {drag.length > 0 && (
+            <div className="mt-3 space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">
+                Nästa drag
+              </p>
+              {drag.slice(0, 3).map((d) => {
+                const Icon = d.icon
+                return (
+                  <Link
+                    key={d.id}
+                    to={d.to}
+                    className="flex items-center gap-2.5 rounded-lg border border-border bg-card p-2.5 shadow-sm transition active:scale-[0.99]"
+                  >
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      {d.text}
+                    </span>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground/40" />
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </section>
 
       {steps.length > 0 && (
         <section className="px-4 pb-4">

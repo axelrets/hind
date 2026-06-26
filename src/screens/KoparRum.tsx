@@ -12,12 +12,18 @@ import { useStore } from '@/lib/store'
 import { dokumentMeta, dokumentProgress } from '@/lib/dokument'
 import { cn } from '@/lib/utils'
 
+// Source-of-funds moments — Hind chases a vague first answer for detail.
+const SOF = new Set(['k_kontantinsats', 'k_kallkontroll', 'k_ursprung'])
+
 export function KoparRum() {
   const { id } = useParams()
   const dok = useStore((s) => s.dokument.find((d) => d.id === id))
   const objekt = useStore((s) => s.objekt.find((o) => o.id === dok?.objektId))
   const answerKrav = useStore((s) => s.answerKrav)
   const [text, setText] = useState('')
+  const [pending, setPending] = useState<{ kravId: string; first: string } | null>(
+    null,
+  )
 
   if (!dok) {
     return (
@@ -36,10 +42,27 @@ export function KoparRum() {
   const progress = dokumentProgress(dok)
   // The next requirement Hind needs the buyer to handle.
   const current = dok.krav.find((k) => k.status !== 'klar')
+  const chasing = !!current && pending?.kravId === current.id
 
   function submitText() {
     if (!current || !text.trim()) return
-    answerKrav(dok!.id, current.id, text.trim())
+    const ans = text.trim()
+    // For source-of-funds, a vague first answer triggers a follow-up before
+    // Hind accepts it — the realtor never has to chase the buyer.
+    if (SOF.has(current.id)) {
+      if (pending?.kravId === current.id) {
+        answerKrav(dok!.id, current.id, `${pending.first} — ${ans}`)
+        setPending(null)
+        setText('')
+        return
+      }
+      if (ans.length < 30) {
+        setPending({ kravId: current.id, first: ans })
+        setText('')
+        return
+      }
+    }
+    answerKrav(dok!.id, current.id, ans)
     setText('')
   }
 
@@ -88,9 +111,11 @@ export function KoparRum() {
               </span>
               <div className="rounded-2xl rounded-tl-sm border border-border bg-card px-3.5 py-2.5 shadow-sm">
                 <p className="text-sm font-medium leading-snug">
-                  {current.fraga}
+                  {chasing
+                    ? `Tack – du skrev ”${pending!.first}”. Kan du specificera lite mer? Vilken bank eller källa, och över vilken period?`
+                    : current.fraga}
                 </p>
-                {current.beskrivning && (
+                {!chasing && current.beskrivning && (
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {current.beskrivning}
                   </p>

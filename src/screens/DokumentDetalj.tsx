@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { Sparkles, Check, AlertCircle, ExternalLink } from 'lucide-react'
+import { Sparkles, Check, AlertCircle, Send } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHeader } from '@/components/PageHeader'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,8 @@ import {
   saknadeKrav,
   dokumentPace,
   kallaMeta,
+  klassificera,
+  betalningLabel,
 } from '@/lib/dokument'
 import { cn } from '@/lib/utils'
 
@@ -47,6 +49,9 @@ export function DokumentDetalj() {
   const objekt = useStore((s) =>
     s.objekt.find((o) => o.id === dok?.objektId),
   )
+  const speculanter = useStore((s) =>
+    s.speculanter.filter((p) => p.objektId === dok?.objektId),
+  )
 
   if (!dok) {
     return (
@@ -63,6 +68,13 @@ export function DokumentDetalj() {
   const progress = dokumentProgress(dok)
   const saknas = saknadeKrav(dok)
   const pace = dokumentPace(dok)
+  const klass = objekt ? klassificera(objekt, speculanter) : null
+  // Moments the buyer can satisfy via the BankID intake (everything but the
+  // realtor's own paperwork).
+  const koparSaknas = saknas.filter((k) => k.id !== 'j_avtal')
+  const harKalla = saknas.some(
+    (k) => k.id === 'k_kallkontroll' || k.id === 'k_bevis',
+  )
 
   return (
     <div className="pb-10">
@@ -78,6 +90,24 @@ export function DokumentDetalj() {
             {dok.status === 'klar' ? 'Klar' : 'Utkast'}
           </Badge>
         </div>
+
+        {/* Motor step 1: how Hind classified the deal → derived moments */}
+        {klass && (
+          <div className="rounded-2xl border border-border bg-muted/40 p-3.5">
+            <p className="text-xs font-medium text-muted-foreground">
+              Hind klassade affären
+            </p>
+            <p className="mt-0.5 text-sm font-medium">
+              {klass.objektTyp} · {betalningLabel[klass.betalning]} ·{' '}
+              {klass.koparTyp}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              → {dok.krav.length} moment krävs för detta dokument
+              {klass.betalning === 'kontant' &&
+                ' · källkontroll krävs (kontantköp)'}
+            </p>
+          </div>
+        )}
 
         {/* Realtor dashboard: completion, pace, missing flags */}
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -104,12 +134,33 @@ export function DokumentDetalj() {
           </div>
         </div>
 
-        <Button asChild size="lg" className="w-full">
-          <Link to={`/r/${dok.id}`}>
-            <ExternalLink className="size-5" />
-            Öppna köparvy (hind.io)
-          </Link>
-        </Button>
+        {/* Motor: action recommendation — offer to execute */}
+        {koparSaknas.length > 0 ? (
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <Sparkles className="size-4 text-primary" />
+              <h2 className="text-sm font-semibold">Hinds åtgärdsförslag</h2>
+            </div>
+            <p className="text-sm text-foreground/80">
+              {harKalla
+                ? `Källkontroll och ${koparSaknas.length - 1} andra moment saknas. Låt Hind samla in dem direkt från köparen via BankID-intag.`
+                : `${koparSaknas.length} moment saknas. Låt Hind samla in dem direkt från köparen via BankID-intag.`}
+            </p>
+            <Button asChild size="lg" className="mt-3 w-full">
+              <Link to={`/r/${dok.id}`}>
+                <Send className="size-5" />
+                Skicka BankID-intag till köparen
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <Button asChild size="lg" variant="outline" className="w-full">
+            <Link to={`/r/${dok.id}`}>
+              <Send className="size-5" />
+              Öppna köparvy (hind.io)
+            </Link>
+          </Button>
+        )}
 
         {/* Form visualization — each field with its value + source or flag */}
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">

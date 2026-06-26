@@ -51,8 +51,50 @@ function hetast(speculanter: Speculant[]): Speculant | undefined {
   return [...speculanter].sort((a, b) => (b.kopvilja ?? 0) - (a.kopvilja ?? 0))[0]
 }
 
+// The buyer the deal turns on. A serious cash buyer takes priority because the
+// cash case is the compliance hotspot (no bank doing KYC in the background).
+export function dealKopare(speculanter: Speculant[]): Speculant | undefined {
+  const kontant = speculanter.find(
+    (s) => s.finansiering === 'kontant' && (s.kopvilja ?? 0) >= 50,
+  )
+  return kontant ?? hetast(speculanter)
+}
+
+export interface DealKlass {
+  objektTyp: string
+  betalning: 'kontant' | 'lan' | 'oklart'
+  koparTyp: string
+  koparNamn: string | null
+}
+
+export const betalningLabel: Record<DealKlass['betalning'], string> = {
+  kontant: 'Kontantköp',
+  lan: 'Bolån',
+  oklart: 'Finansiering oklar',
+}
+
+// Step 1 of the motor: classify the deal — this is what derives the moments.
+export function klassificera(
+  _objekt: Objekt,
+  speculanter: Speculant[],
+): DealKlass {
+  const kopare = dealKopare(speculanter)
+  const betalning =
+    kopare?.finansiering === 'kontant'
+      ? 'kontant'
+      : kopare?.finansiering === 'lånelöfte'
+        ? 'lan'
+        : 'oklart'
+  return {
+    objektTyp: 'Bostadsrätt',
+    betalning,
+    koparTyp: 'Privatperson',
+    koparNamn: kopare?.namn ?? null,
+  }
+}
+
 function kundkannedom(objekt: Objekt, speculanter: Speculant[]): string {
-  const kopare = hetast(speculanter)
+  const kopare = dealKopare(speculanter)
   return [
     '## Uppdrag',
     `Avser förmedling av ${objekt.adress}, ${objekt.omrade}. Utgångspris ${formatSEK(objekt.pris)}.`,
@@ -151,9 +193,10 @@ export function kravMall(
   objekt: Objekt,
   speculanter: Speculant[],
 ): DokumentKrav[] {
-  const kopare = hetast(speculanter)
+  const klass = klassificera(objekt, speculanter)
+  const kopare = dealKopare(speculanter)
   if (typ === 'kundkannedom') {
-    return [
+    const krav: DokumentKrav[] = [
       {
         id: 'k_person',
         fraga: 'Personuppgifter',
@@ -173,8 +216,8 @@ export function kravMall(
       },
       {
         id: 'k_id',
-        fraga: 'Legitimation',
-        beskrivning: 'Giltig ID-handling (pass eller körkort)',
+        fraga: 'Legitimation (BankID)',
+        beskrivning: 'Identitet verifieras med BankID i intaget',
         typ: 'fil',
         status: 'saknas',
         varde: null,
@@ -191,10 +234,10 @@ export function kravMall(
         kalla: kopare ? 'gmail' : null,
       },
       {
-        id: 'k_lan',
-        fraga: 'Lånelöfte',
-        beskrivning: 'Underlag från banken',
-        typ: 'fil',
+        id: 'k_kontantinsats',
+        fraga: 'Kontantinsatsens ursprung',
+        beskrivning: 'Varifrån kommer kontantinsatsen?',
+        typ: 'fritext',
         status: 'saknas',
         varde: null,
         kalla: null,
@@ -220,15 +263,6 @@ export function kravMall(
         kalla: null,
       },
       {
-        id: 'k_ursprung',
-        fraga: 'Pengarnas ursprung',
-        beskrivning: 'Varifrån kommer kapitalet till köpet?',
-        typ: 'fritext',
-        status: 'saknas',
-        varde: null,
-        kalla: null,
-      },
-      {
         id: 'k_syfte',
         fraga: 'Syfte med förvärvet',
         typ: 'fritext',
@@ -237,6 +271,44 @@ export function kravMall(
         kalla: 'gmail',
       },
     ]
+    // Required moments derived from the deal classification:
+    if (klass.betalning === 'lan') {
+      krav.splice(5, 0, {
+        id: 'k_lan',
+        fraga: 'Lånelöfte',
+        beskrivning: 'Underlag från banken',
+        typ: 'fil',
+        status: 'saknas',
+        varde: null,
+        kalla: null,
+      })
+    }
+    if (klass.betalning === 'kontant') {
+      // Cash buyer — full source-of-funds is the compliance hotspot.
+      krav.splice(
+        5,
+        0,
+        {
+          id: 'k_kallkontroll',
+          fraga: 'Källkontroll – hela köpeskillingen',
+          beskrivning: 'Var kommer pengarna till hela köpet ifrån?',
+          typ: 'fritext',
+          status: 'saknas',
+          varde: null,
+          kalla: null,
+        },
+        {
+          id: 'k_bevis',
+          fraga: 'Underlag för pengarnas ursprung',
+          beskrivning: 'Kontoutdrag, säljkontrakt eller arvshandling',
+          typ: 'fil',
+          status: 'saknas',
+          varde: null,
+          kalla: null,
+        },
+      )
+    }
+    return krav
   }
   const budCount = speculanter.filter((s) => s.budgetMax !== null).length
   return [
