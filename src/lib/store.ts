@@ -8,6 +8,7 @@ import type {
   Dokument,
   DokumentTyp,
   KravKalla,
+  TimelineTyp,
 } from './types'
 import {
   seedObjekt,
@@ -41,6 +42,16 @@ interface HindState {
     kravId: string,
     varde: string,
     kalla?: KravKalla,
+  ) => void
+  /** Log an executed action (drafted + approved) onto the object timeline. */
+  logHandelse: (
+    objektId: string,
+    ev: {
+      typ: TimelineTyp
+      titel: string
+      beskrivning: string
+      speculantId?: string | null
+    },
   ) => void
   /** Mark a timeline event as synced to Vitec. */
   setSynced: (timelineId: string) => void
@@ -138,6 +149,23 @@ export const useStore = create<HindState>((set, get) => ({
               ),
             },
       ),
+    })),
+
+  logHandelse: (objektId, ev) =>
+    set((s) => ({
+      timeline: [
+        {
+          id: uid('tl'),
+          objektId,
+          speculantId: ev.speculantId ?? null,
+          typ: ev.typ,
+          titel: ev.titel,
+          beskrivning: ev.beskrivning,
+          occurredAt: new Date().toISOString(),
+          synced: false,
+        },
+        ...s.timeline,
+      ],
     })),
 
   setSynced: (timelineId) =>
