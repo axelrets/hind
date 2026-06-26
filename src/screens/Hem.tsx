@@ -1,8 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, Mic, ArrowUp } from 'lucide-react'
+import {
+  Sparkles,
+  Mic,
+  ArrowUp,
+  MessageSquare,
+  FileText,
+  ChevronRight,
+} from 'lucide-react'
+import { useStore } from '@/lib/store'
 import { agendaMeta } from '@/components/meta'
 import { seedAgenda } from '@/lib/seed'
+import { harledForslag } from '@/lib/forslag'
 import { supabaseEnabled } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +39,18 @@ export function Hem() {
     if (!q) return
     navigate('/assistent', { state: { q } })
   }
+
+  // The day plan: Hind's suggested moves aggregated across all objects.
+  const objekt = useStore((s) => s.objekt)
+  const speculanter = useStore((s) => s.speculanter)
+  const dokument = useStore((s) => s.dokument)
+  const forslag = objekt.flatMap((o) =>
+    harledForslag(
+      o,
+      speculanter.filter((p) => p.objektId === o.id),
+      dokument.filter((d) => d.objektId === o.id),
+    ),
+  )
 
   const today = new Date().toLocaleDateString('sv-SE', {
     weekday: 'long',
@@ -120,6 +141,53 @@ export function Hem() {
           ))}
         </div>
       </section>
+
+      {/* Day plan: Hind's suggested moves across every object */}
+      {forslag.length > 0 && (
+        <section className="mt-7 rounded-3xl border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-xl">
+          <div className="mb-3 flex items-center gap-1.5 px-1">
+            <Sparkles className="size-4 text-indigo-600" />
+            <h2 className="text-sm font-semibold text-foreground/70">
+              Att göra idag
+            </h2>
+          </div>
+          <div className="space-y-2">
+            {forslag.slice(0, 5).map((f) => {
+              const o = objekt.find((x) => x.id === f.objektId)
+              const to =
+                f.exec === 'intag' && f.dokId
+                  ? `/r/${f.dokId}`
+                  : `/objekt/${f.objektId}`
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => navigate(to)}
+                  className="flex w-full items-center gap-3 rounded-2xl border border-white/60 bg-white/70 p-3 text-left shadow-sm transition active:scale-[0.99]"
+                >
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                    {f.exec === 'sms' ? (
+                      <MessageSquare className="size-4" />
+                    ) : (
+                      <FileText className="size-4" />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium leading-snug">
+                      {f.text}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {o?.adress}
+                      {f.hint ? ` · ${f.hint}` : ''}
+                    </span>
+                  </span>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground/40" />
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* A calm overview of the day — frosted glass panel */}
       <section className="mt-7 rounded-3xl border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-xl">

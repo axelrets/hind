@@ -4,17 +4,8 @@ import { Sparkles, FileText, MessageSquare, Send } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { Badge } from '@/components/ui/badge'
 import { Timeline } from '@/components/Timeline'
-import { dokumentMeta, saknadeKrav, dokumentPace } from '@/lib/dokument'
-
-interface Drag {
-  id: string
-  text: string
-  hint?: string
-  exec: 'intag' | 'sms'
-  dokId?: string
-  speculantId?: string
-  draft?: string
-}
+import { saknadeKrav, dokumentPace } from '@/lib/dokument'
+import { harledForslag, type Forslag } from '@/lib/forslag'
 
 /** The object's living timeline: current status, executable next moves, and
  *  the captured history — all derived from the store. */
@@ -43,9 +34,6 @@ export function HindsTidslinje({ objektId }: { objektId: string }) {
   const [done, setDone] = useState<Set<string>>(new Set())
 
   const heta = speculanter.filter((s) => (s.kopvilja ?? 0) >= 70)
-  const hottest = [...speculanter].sort(
-    (a, b) => (b.kopvilja ?? 0) - (a.kopvilja ?? 0),
-  )[0]
   const docFlags = dokument
     .map((d) => ({ d, saknas: saknadeKrav(d).length }))
     .filter((x) => x.saknas > 0)
@@ -63,31 +51,10 @@ export function HindsTidslinje({ objektId }: { objektId: string }) {
     .join(' · ')
 
   // Suggested next moves, derived from captured data, each executable.
-  const drag: Drag[] = []
-  docFlags.forEach((f) =>
-    drag.push({
-      id: `intag-${f.d.id}`,
-      text: `Skicka BankID-intag – ${dokumentMeta[f.d.typ].titel}`,
-      hint: `${f.saknas} moment saknas`,
-      exec: 'intag',
-      dokId: f.d.id,
-    }),
-  )
-  if (hottest && (hottest.kopvilja ?? 0) >= 70) {
-    drag.push({
-      id: `sms-${hottest.id}`,
-      text: `SMS ${hottest.namn} – stäm av budnivå`,
-      hint: `Köpvilja ${hottest.kopvilja}`,
-      exec: 'sms',
-      speculantId: hottest.id,
-      draft: `Hej ${hottest.namn.split(' ')[0]}! Tack för intresset för ${
-        objekt?.adress ?? 'bostaden'
-      }. Vill du att vi stämmer av budnivån inför budgivningen? Hör gärna av dig. / Mäklaren`,
-    })
-  }
+  const drag = objekt ? harledForslag(objekt, speculanter, dokument) : []
   const synligaDrag = drag.filter((d) => !done.has(d.id))
 
-  function exec(d: Drag) {
+  function exec(d: Forslag) {
     if (d.exec === 'intag' && d.dokId) {
       navigate(`/r/${d.dokId}`)
       return
@@ -96,7 +63,7 @@ export function HindsTidslinje({ objektId }: { objektId: string }) {
     setDraftText(d.draft ?? '')
   }
 
-  function sendDraft(d: Drag) {
+  function sendDraft(d: Forslag) {
     const namn =
       speculanter.find((s) => s.id === d.speculantId)?.namn ?? 'köparen'
     logHandelse(objektId, {
