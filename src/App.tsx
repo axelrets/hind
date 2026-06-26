@@ -7,6 +7,7 @@ import { ObjektDetalj } from '@/screens/ObjektDetalj'
 import { Spekulanter } from '@/screens/Spekulanter'
 import { SpekulantProfil } from '@/screens/SpekulantProfil'
 import { DokumentDetalj } from '@/screens/DokumentDetalj'
+import { KoparRum } from '@/screens/KoparRum'
 import { Rum } from '@/screens/Rum'
 import { SynkaVitec } from '@/screens/SynkaVitec'
 import { Assistent } from '@/screens/Assistent'
@@ -16,7 +17,8 @@ function AppShell() {
   const fullscreen =
     location.pathname.startsWith('/debrief') ||
     location.pathname.startsWith('/synka') ||
-    location.pathname.startsWith('/assistent')
+    location.pathname.startsWith('/assistent') ||
+    location.pathname.startsWith('/r/')
 
   return (
     <MobileFrame>
@@ -29,6 +31,7 @@ function AppShell() {
             <Route path="/spekulanter" element={<Spekulanter />} />
             <Route path="/spekulanter/:id" element={<SpekulantProfil />} />
             <Route path="/dokument/:id" element={<DokumentDetalj />} />
+            <Route path="/r/:id" element={<KoparRum />} />
             <Route path="/debrief" element={<Rum />} />
             <Route path="/synka" element={<SynkaVitec />} />
             <Route path="/assistent" element={<Assistent />} />

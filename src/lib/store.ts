@@ -7,6 +7,7 @@ import type {
   StructuredDebrief,
   Dokument,
   DokumentTyp,
+  KravKalla,
 } from './types'
 import {
   seedObjekt,
@@ -15,7 +16,7 @@ import {
   seedNextSteps,
   seedDokument,
 } from './seed'
-import { draftDokumentContent } from './dokument'
+import { draftDokumentContent, kravMall } from './dokument'
 import { uid } from './utils'
 
 export interface CommitResult {
@@ -34,6 +35,13 @@ interface HindState {
   commitDebrief: (objektId: string, d: StructuredDebrief) => CommitResult
   /** Draft (with Hind) a broker document for an object and store it. */
   draftDokument: (objektId: string, typ: DokumentTyp) => Dokument
+  /** Satisfy one requirement on a document (buyer answer / upload). */
+  answerKrav: (
+    dokId: string,
+    kravId: string,
+    varde: string,
+    kalla?: KravKalla,
+  ) => void
   /** Mark a timeline event as synced to Vitec. */
   setSynced: (timelineId: string) => void
   toggleNextStep: (id: string) => void
@@ -107,11 +115,30 @@ export const useStore = create<HindState>((set, get) => ({
             speculanter.filter((s) => s.objektId === objektId),
           )
         : '',
+      krav: o
+        ? kravMall(typ, o, speculanter.filter((s) => s.objektId === objektId))
+        : [],
       createdAt: new Date().toISOString(),
     }
     set((s) => ({ dokument: [dok, ...s.dokument] }))
     return dok
   },
+
+  answerKrav: (dokId, kravId, varde, kalla = 'kopare') =>
+    set((s) => ({
+      dokument: s.dokument.map((d) =>
+        d.id !== dokId
+          ? d
+          : {
+              ...d,
+              krav: d.krav.map((k) =>
+                k.id !== kravId
+                  ? k
+                  : { ...k, status: 'klar', varde, kalla },
+              ),
+            },
+      ),
+    })),
 
   setSynced: (timelineId) =>
     set((s) => ({

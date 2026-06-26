@@ -26,12 +26,29 @@ export type Kopmognad = 'budredo' | 'seriös' | 'tidig' | 'oklart'
 // AI-drafted broker documents that live on each object.
 export type DokumentTyp = 'kundkannedom' | 'maklarjournal'
 
+// A single requirement/task that must be satisfied to complete a document.
+export type KravStatus = 'klar' | 'saknas' | 'vantar'
+export type KravKalla = 'kopare' | 'vitec' | 'mspecs' | 'gmail' | 'maklare'
+export type KravTyp = 'fritext' | 'fil' | 'val'
+
+export interface DokumentKrav {
+  id: string
+  fraga: string
+  beskrivning?: string
+  typ: KravTyp
+  alternativ?: string[] // options for typ === 'val'
+  status: KravStatus
+  varde: string | null // provided answer / uploaded filename
+  kalla: KravKalla | null // where a satisfied value came from
+}
+
 export interface Dokument {
   id: string
   objektId: string
   typ: DokumentTyp
   status: 'utkast' | 'klar'
   innehall: string // AI-genererat utkast (sektionerad text)
+  krav: DokumentKrav[]
   createdAt: string // ISO
 }
 

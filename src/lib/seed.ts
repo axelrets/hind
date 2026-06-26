@@ -6,7 +6,7 @@ import type {
   AgendaItem,
   Dokument,
 } from './types'
-import { draftDokumentContent } from './dokument'
+import { draftDokumentContent, kravMall } from './dokument'
 
 // Dates are generated relative to "now" so the demo always looks current.
 function at(daysOffset: number, hour = 9, minute = 0): string {
@@ -348,6 +348,11 @@ export const seedDokument: Dokument[] = [
     typ: 'kundkannedom',
     status: 'utkast',
     innehall: draftDokumentContent(
+      'kundkannedom',
+      seedObjekt[0],
+      seedSpeculanter.filter((s) => s.objektId === 'obj_gotgatan'),
+    ),
+    krav: kravMall(
       'kundkannedom',
       seedObjekt[0],
       seedSpeculanter.filter((s) => s.objektId === 'obj_gotgatan'),

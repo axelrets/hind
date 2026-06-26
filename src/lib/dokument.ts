@@ -1,6 +1,13 @@
 import { ShieldCheck, BookText } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import type { DokumentTyp, Objekt, Speculant } from './types'
+import type {
+  DokumentTyp,
+  Dokument,
+  DokumentKrav,
+  KravKalla,
+  Objekt,
+  Speculant,
+} from './types'
 import { formatSEK } from './utils'
 
 export const dokumentMeta: Record<
@@ -126,4 +133,189 @@ export function draftDokumentContent(
   return typ === 'kundkannedom'
     ? kundkannedom(objekt, speculanter)
     : maklarjournal(objekt, speculanter)
+}
+
+// Where a satisfied requirement came from — shown as a source badge.
+export const kallaMeta: Record<KravKalla, string> = {
+  kopare: 'Köpare',
+  vitec: 'Vitec',
+  mspecs: 'Mspecs',
+  gmail: 'Gmail',
+  maklare: 'Mäklare',
+}
+
+/** The checklist of requirements Hind must satisfy for a document. Some are
+ *  pre-filled from connected sources (Vitec/Mspecs/Gmail) to show auto-capture. */
+export function kravMall(
+  typ: DokumentTyp,
+  objekt: Objekt,
+  speculanter: Speculant[],
+): DokumentKrav[] {
+  const kopare = hetast(speculanter)
+  if (typ === 'kundkannedom') {
+    return [
+      {
+        id: 'k_person',
+        fraga: 'Personuppgifter',
+        beskrivning: 'Namn, personnummer och adress',
+        typ: 'fritext',
+        status: kopare ? 'klar' : 'saknas',
+        varde: kopare?.namn ?? null,
+        kalla: kopare ? 'vitec' : null,
+      },
+      {
+        id: 'k_kontakt',
+        fraga: 'Kontaktuppgifter',
+        typ: 'fritext',
+        status: kopare?.telefon ? 'klar' : 'saknas',
+        varde: kopare?.telefon ?? null,
+        kalla: kopare?.telefon ? 'vitec' : null,
+      },
+      {
+        id: 'k_id',
+        fraga: 'Legitimation',
+        beskrivning: 'Giltig ID-handling (pass eller körkort)',
+        typ: 'fil',
+        status: 'saknas',
+        varde: null,
+        kalla: null,
+      },
+      {
+        id: 'k_fin',
+        fraga: 'Finansiering',
+        beskrivning: 'Hur finansieras köpet?',
+        typ: 'val',
+        alternativ: ['Lånelöfte', 'Kontant'],
+        status: kopare ? 'klar' : 'saknas',
+        varde: kopare ? finText[kopare.finansiering] : null,
+        kalla: kopare ? 'gmail' : null,
+      },
+      {
+        id: 'k_lan',
+        fraga: 'Lånelöfte',
+        beskrivning: 'Underlag från banken',
+        typ: 'fil',
+        status: 'saknas',
+        varde: null,
+        kalla: null,
+      },
+      {
+        id: 'k_huvudman',
+        fraga: 'Verklig huvudman',
+        beskrivning: 'Köper du för egen räkning?',
+        typ: 'val',
+        alternativ: ['För egen räkning', 'För annans räkning'],
+        status: 'saknas',
+        varde: null,
+        kalla: null,
+      },
+      {
+        id: 'k_pep',
+        fraga: 'Politiskt utsatt ställning (PEP)',
+        beskrivning: 'Har du en hög politisk position eller en nära relation till någon som har det?',
+        typ: 'val',
+        alternativ: ['Nej', 'Ja'],
+        status: 'saknas',
+        varde: null,
+        kalla: null,
+      },
+      {
+        id: 'k_ursprung',
+        fraga: 'Pengarnas ursprung',
+        beskrivning: 'Varifrån kommer kapitalet till köpet?',
+        typ: 'fritext',
+        status: 'saknas',
+        varde: null,
+        kalla: null,
+      },
+      {
+        id: 'k_syfte',
+        fraga: 'Syfte med förvärvet',
+        typ: 'fritext',
+        status: 'klar',
+        varde: 'Permanentbostad',
+        kalla: 'gmail',
+      },
+    ]
+  }
+  const budCount = speculanter.filter((s) => s.budgetMax !== null).length
+  return [
+    {
+      id: 'j_avtal',
+      fraga: 'Uppdragsavtal',
+      typ: 'fil',
+      status: 'klar',
+      varde: 'uppdragsavtal.pdf',
+      kalla: 'maklare',
+    },
+    {
+      id: 'j_objekt',
+      fraga: 'Objektsbeskrivning',
+      typ: 'fritext',
+      status: 'klar',
+      varde: `${objekt.rum} rok, ${objekt.boarea} m²`,
+      kalla: 'mspecs',
+    },
+    {
+      id: 'j_pris',
+      fraga: 'Utgångspris',
+      typ: 'fritext',
+      status: 'klar',
+      varde: formatSEK(objekt.pris),
+      kalla: 'mspecs',
+    },
+    {
+      id: 'j_bud',
+      fraga: 'Budhistorik',
+      typ: 'fritext',
+      status: budCount ? 'klar' : 'saknas',
+      varde: budCount ? `${budCount} bud registrerade` : null,
+      kalla: budCount ? 'vitec' : null,
+    },
+    {
+      id: 'j_kopare',
+      fraga: 'Köparens uppgifter',
+      beskrivning: 'Fullständiga uppgifter om köparen',
+      typ: 'fritext',
+      status: 'saknas',
+      varde: null,
+      kalla: null,
+    },
+    {
+      id: 'j_tilltrade',
+      fraga: 'Tillträdesdatum',
+      beskrivning: 'Önskat datum för tillträde',
+      typ: 'fritext',
+      status: 'saknas',
+      varde: null,
+      kalla: null,
+    },
+  ]
+}
+
+/** Completion 0–100 from satisfied requirements. */
+export function dokumentProgress(dok: Dokument): number {
+  if (dok.krav.length === 0) return 0
+  const klara = dok.krav.filter((k) => k.status === 'klar').length
+  return Math.round((100 * klara) / dok.krav.length)
+}
+
+export function saknadeKrav(dok: Dokument): DokumentKrav[] {
+  return dok.krav.filter((k) => k.status !== 'klar')
+}
+
+/** Pace signal for the realtor: is the buyer on track or stalling? */
+export function dokumentPace(dok: Dokument): {
+  status: 'klar' | 'normal' | 'sen'
+  label: string
+  ton: 'success' | 'warning' | 'muted'
+} {
+  if (dokumentProgress(dok) >= 100) {
+    return { status: 'klar', label: 'Komplett', ton: 'success' }
+  }
+  const hrs = (Date.now() - new Date(dok.createdAt).getTime()) / 3.6e6
+  if (hrs > 48) {
+    return { status: 'sen', label: 'Tar ovanligt lång tid', ton: 'warning' }
+  }
+  return { status: 'normal', label: 'Går som vanligt', ton: 'muted' }
 }
