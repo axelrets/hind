@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Home, Building2, Users, User, Sparkles } from 'lucide-react'
+import { Home, Building2, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -11,12 +11,10 @@ interface NavItem {
 }
 
 const leftItems: NavItem[] = [
-  { to: '/', label: 'Hem', icon: Home, end: true },
-  { to: '/objekt', label: 'Objekt', icon: Building2 },
+  { to: '/', label: 'Workbench', icon: Home, end: true },
 ]
 const rightItems: NavItem[] = [
-  { to: '/spekulanter', label: 'Spekulanter', icon: Users },
-  { to: '/profil', label: 'Profil', icon: User },
+  { to: '/objekt', label: 'Objekt', icon: Building2 },
 ]
 
 function Tab({ item }: { item: NavItem }) {
@@ -50,7 +48,7 @@ export function BottomNav() {
       >
         <Sparkles className="size-6" />
       </button>
-      <div className="grid grid-cols-5 items-end px-2">
+      <div className="grid grid-cols-3 items-end px-2">
         {leftItems.map((it) => (
           <Tab key={it.to} item={it} />
         ))}

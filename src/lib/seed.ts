@@ -4,7 +4,9 @@ import type {
   TimelineEvent,
   NextStep,
   AgendaItem,
+  Dokument,
 } from './types'
+import { draftDokumentContent } from './dokument'
 
 // Dates are generated relative to "now" so the demo always looks current.
 function at(daysOffset: number, hour = 9, minute = 0): string {
@@ -335,5 +337,21 @@ export const seedNextSteps: NextStep[] = [
     deadline: at(1, 14, 0),
     prioritet: 'medel',
     klar: false,
+  },
+]
+
+// One pre-drafted document so the object's Dokument section isn't empty.
+export const seedDokument: Dokument[] = [
+  {
+    id: 'dok_gotgatan_kyc',
+    objektId: 'obj_gotgatan',
+    typ: 'kundkannedom',
+    status: 'utkast',
+    innehall: draftDokumentContent(
+      'kundkannedom',
+      seedObjekt[0],
+      seedSpeculanter.filter((s) => s.objektId === 'obj_gotgatan'),
+    ),
+    createdAt: at(-1, 10, 0),
   },
 ]

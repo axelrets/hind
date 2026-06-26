@@ -23,6 +23,18 @@ export type Finansiering = 'kontant' | 'lånelöfte' | 'oklart'
 // Buyer maturity — how close this spekulant is to acting.
 export type Kopmognad = 'budredo' | 'seriös' | 'tidig' | 'oklart'
 
+// AI-drafted broker documents that live on each object.
+export type DokumentTyp = 'kundkannedom' | 'maklarjournal'
+
+export interface Dokument {
+  id: string
+  objektId: string
+  typ: DokumentTyp
+  status: 'utkast' | 'klar'
+  innehall: string // AI-genererat utkast (sektionerad text)
+  createdAt: string // ISO
+}
+
 export interface Speculant {
   id: string
   objektId: string | null

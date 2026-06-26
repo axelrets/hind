@@ -5,13 +5,17 @@ import type {
   TimelineEvent,
   NextStep,
   StructuredDebrief,
+  Dokument,
+  DokumentTyp,
 } from './types'
 import {
   seedObjekt,
   seedSpeculanter,
   seedTimeline,
   seedNextSteps,
+  seedDokument,
 } from './seed'
+import { draftDokumentContent } from './dokument'
 import { uid } from './utils'
 
 export interface CommitResult {
@@ -25,18 +29,22 @@ interface HindState {
   speculanter: Speculant[]
   timeline: TimelineEvent[]
   nextSteps: NextStep[]
+  dokument: Dokument[]
   /** Create a spekulant + timeline event + next step from a debrief. */
   commitDebrief: (objektId: string, d: StructuredDebrief) => CommitResult
+  /** Draft (with Hind) a broker document for an object and store it. */
+  draftDokument: (objektId: string, typ: DokumentTyp) => Dokument
   /** Mark a timeline event as synced to Vitec. */
   setSynced: (timelineId: string) => void
   toggleNextStep: (id: string) => void
 }
 
-export const useStore = create<HindState>((set) => ({
+export const useStore = create<HindState>((set, get) => ({
   objekt: seedObjekt,
   speculanter: seedSpeculanter,
   timeline: seedTimeline,
   nextSteps: seedNextSteps,
+  dokument: seedDokument,
 
   commitDebrief: (objektId, d) => {
     const now = new Date().toISOString()
@@ -82,6 +90,27 @@ export const useStore = create<HindState>((set) => ({
       nextSteps: [nextStep, ...s.nextSteps],
     }))
     return { speculant, event, nextStep }
+  },
+
+  draftDokument: (objektId, typ) => {
+    const { objekt, speculanter } = get()
+    const o = objekt.find((x) => x.id === objektId)
+    const dok: Dokument = {
+      id: uid('dok'),
+      objektId,
+      typ,
+      status: 'utkast',
+      innehall: o
+        ? draftDokumentContent(
+            typ,
+            o,
+            speculanter.filter((s) => s.objektId === objektId),
+          )
+        : '',
+      createdAt: new Date().toISOString(),
+    }
+    set((s) => ({ dokument: [dok, ...s.dokument] }))
+    return dok
   },
 
   setSynced: (timelineId) =>

@@ -1,5 +1,5 @@
-import { useParams, Link } from 'react-router-dom'
-import { Mic, FileText } from 'lucide-react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { Mic, FileText, ChevronRight, Sparkles } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHeader } from '@/components/PageHeader'
 import { ObjektThumb } from '@/components/ObjektThumb'
@@ -8,15 +8,22 @@ import { NextStepCard } from '@/components/NextStepCard'
 import { SpeculantListItem } from '@/components/SpeculantListItem'
 import { Timeline } from '@/components/Timeline'
 import { Button } from '@/components/ui/button'
+import { dokumentMeta } from '@/lib/dokument'
+import type { DokumentTyp } from '@/lib/types'
 import { formatSEK } from '@/lib/utils'
 import { prioRank } from '@/lib/sort'
 
+const DOK_TYPER: DokumentTyp[] = ['kundkannedom', 'maklarjournal']
+
 export function ObjektDetalj() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const objekt = useStore((s) => s.objekt.find((o) => o.id === id))
   const speculanter = useStore((s) =>
     s.speculanter.filter((p) => p.objektId === id),
   )
+  const dokument = useStore((s) => s.dokument.filter((d) => d.objektId === id))
+  const draftDokument = useStore((s) => s.draftDokument)
   const events = useStore((s) =>
     s.timeline
       .filter((e) => e.objektId === id)
@@ -92,6 +99,63 @@ export function ObjektDetalj() {
           {speculanter.length === 0 && (
             <p className="text-sm text-muted-foreground">Inga spekulanter ännu.</p>
           )}
+        </div>
+      </section>
+
+      <section className="px-4 pb-4">
+        <h2 className="mb-2 text-base font-semibold">Dokument</h2>
+        <div className="space-y-2.5">
+          {DOK_TYPER.map((typ) => {
+            const existing = dokument.find((d) => d.typ === typ)
+            const m = dokumentMeta[typ]
+            const Icon = m.icon
+            if (existing) {
+              return (
+                <Link
+                  key={typ}
+                  to={`/dokument/${existing.id}`}
+                  className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-sm transition active:scale-[0.99]"
+                >
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium leading-tight">
+                      {m.titel}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      AI-utkast · {m.beskrivning}
+                    </span>
+                  </span>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground/40" />
+                </Link>
+              )
+            }
+            return (
+              <button
+                key={typ}
+                type="button"
+                onClick={() => navigate(`/dokument/${draftDokument(id!, typ).id}`)}
+                className="flex w-full items-center gap-3 rounded-lg border border-dashed border-border bg-card/50 p-3 text-left transition active:scale-[0.99]"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <Icon className="size-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium leading-tight">
+                    {m.titel}
+                  </span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {m.beskrivning}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-primary">
+                  <Sparkles className="size-3.5" />
+                  Skapa utkast
+                </span>
+              </button>
+            )
+          })}
         </div>
       </section>
 
