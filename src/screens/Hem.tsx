@@ -1,5 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { Sparkles, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Sparkles, Mic, ArrowUp } from 'lucide-react'
 import { agendaMeta } from '@/components/meta'
 import { seedAgenda } from '@/lib/seed'
 import { supabaseEnabled } from '@/lib/supabase'
@@ -21,6 +22,14 @@ const prompts = [
 
 export function Hem() {
   const navigate = useNavigate()
+  const [input, setInput] = useState('')
+
+  // Hand the typed message to the chat, which auto-sends it.
+  function ask(text: string) {
+    const q = text.trim()
+    if (!q) return
+    navigate('/assistent', { state: { q } })
+  }
 
   const today = new Date().toLocaleDateString('sv-SE', {
     weekday: 'long',
@@ -53,31 +62,57 @@ export function Hem() {
         </p>
       </header>
 
-      {/* Virtual Hind: what do you want to do? — frosted glass */}
+      {/* Workbench: start here — type, talk, or pick a suggestion */}
       <section className="mt-7">
-        <Link
-          to="/assistent"
-          className="flex items-center gap-3 rounded-3xl border border-white/30 bg-white/20 p-4 shadow-xl backdrop-blur-xl transition active:scale-[0.99]"
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            ask(input)
+          }}
+          className="rounded-[26px] border border-white/50 bg-white p-2 shadow-2xl"
         >
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-indigo-600 shadow-sm">
-            <Sparkles className="size-5" />
-          </span>
-          <span className="min-w-0 flex-1 text-white">
-            <span className="block text-[15px] font-semibold leading-tight">
-              Vad vill du göra?
+          <div className="flex items-end gap-2.5">
+            <span className="mb-0.5 flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-sm">
+              <Sparkles className="size-5" />
             </span>
-            <span className="block truncate text-xs text-white/80">
-              Fråga Hind eller berätta om en visning…
-            </span>
-          </span>
-          <ArrowRight className="size-5 shrink-0 text-white/70" />
-        </Link>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  ask(input)
+                }
+              }}
+              rows={1}
+              placeholder="Fråga Hind eller berätta om en visning…"
+              aria-label="Skriv till Hind"
+              className="no-scrollbar max-h-28 min-h-[2.75rem] flex-1 resize-none bg-transparent py-2.5 text-[15px] leading-snug text-foreground placeholder:text-muted-foreground/70 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => navigate('/debrief')}
+              aria-label="Prata in en visning"
+              className="mb-0.5 flex size-11 shrink-0 items-center justify-center rounded-full border border-border text-indigo-600 transition active:scale-90"
+            >
+              <Mic className="size-5" />
+            </button>
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              aria-label="Skicka till Hind"
+              className="mb-0.5 flex size-11 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm transition active:scale-90 disabled:opacity-40"
+            >
+              <ArrowUp className="size-5" />
+            </button>
+          </div>
+        </form>
         <div className="mt-3 flex flex-wrap gap-2">
           {prompts.map((p) => (
             <button
               key={p}
               type="button"
-              onClick={() => navigate('/assistent', { state: { q: p } })}
+              onClick={() => ask(p)}
               className="rounded-full border border-white/30 bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur transition active:scale-95"
             >
               {p}
