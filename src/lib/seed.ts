@@ -359,4 +359,23 @@ export const seedDokument: Dokument[] = [
     ),
     createdAt: at(-1, 10, 0),
   },
+  {
+    // Older, still-incomplete journal → exercises the "tar ovanligt lång tid"
+    // pace flag and surfaces a move in the day plan.
+    id: 'dok_bergsund_journal',
+    objektId: 'obj_bergsund',
+    typ: 'maklarjournal',
+    status: 'utkast',
+    innehall: draftDokumentContent(
+      'maklarjournal',
+      seedObjekt[1],
+      seedSpeculanter.filter((s) => s.objektId === 'obj_bergsund'),
+    ),
+    krav: kravMall(
+      'maklarjournal',
+      seedObjekt[1],
+      seedSpeculanter.filter((s) => s.objektId === 'obj_bergsund'),
+    ),
+    createdAt: at(-3, 9, 30),
+  },
 ]
