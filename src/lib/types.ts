@@ -1,11 +1,13 @@
 // Domain types for Hind. No TS enums (erasableSyntaxOnly) — string-literal unions.
 
 export type ObjektStatus = 'kommande' | 'till_salu' | 'budgivning' | 'sald'
+export type ObjektTyp = 'bostadsratt' | 'villa' | 'fritidshus'
 
 export interface Objekt {
   id: string
   adress: string
   omrade: string // e.g. "Södermalm, Stockholm"
+  objektTyp: ObjektTyp // drives object-specific compliance moments
   rum: number
   boarea: number // m²
   pris: number // utgångspris, SEK

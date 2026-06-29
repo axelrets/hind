@@ -6,6 +6,7 @@ import {
   ArrowUp,
   MessageSquare,
   FileText,
+  CalendarClock,
   ChevronRight,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
@@ -168,6 +169,8 @@ export function Hem() {
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
                     {f.exec === 'sms' ? (
                       <MessageSquare className="size-4" />
+                    ) : f.exec === 'boka' ? (
+                      <CalendarClock className="size-4" />
                     ) : (
                       <FileText className="size-4" />
                     )}

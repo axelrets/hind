@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, FileText, MessageSquare, Send } from 'lucide-react'
+import { Sparkles, FileText, MessageSquare, CalendarClock, Send } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { Badge } from '@/components/ui/badge'
 import { Timeline } from '@/components/Timeline'
@@ -63,14 +63,22 @@ export function HindsTidslinje({ objektId }: { objektId: string }) {
   }
 
   function sendDraft(d: Forslag) {
-    const namn =
-      speculanter.find((s) => s.id === d.speculantId)?.namn ?? 'köparen'
-    logHandelse(objektId, {
-      typ: 'sms',
-      titel: `SMS till ${namn}`,
-      beskrivning: draftText.trim(),
-      speculantId: d.speculantId ?? null,
-    })
+    if (d.exec === 'boka') {
+      logHandelse(objektId, {
+        typ: 'samtal',
+        titel: 'Besiktning – förfrågan skickad',
+        beskrivning: draftText.trim(),
+      })
+    } else {
+      const namn =
+        speculanter.find((s) => s.id === d.speculantId)?.namn ?? 'köparen'
+      logHandelse(objektId, {
+        typ: 'sms',
+        titel: `SMS till ${namn}`,
+        beskrivning: draftText.trim(),
+        speculantId: d.speculantId ?? null,
+      })
+    }
     setDone((prev) => new Set(prev).add(d.id))
     setDrafting(null)
   }
@@ -110,6 +118,8 @@ export function HindsTidslinje({ objektId }: { objektId: string }) {
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   {d.exec === 'sms' ? (
                     <MessageSquare className="size-4" />
+                  ) : d.exec === 'boka' ? (
+                    <CalendarClock className="size-4" />
                   ) : (
                     <FileText className="size-4" />
                   )}

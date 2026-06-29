@@ -73,9 +73,15 @@ export const betalningLabel: Record<DealKlass['betalning'], string> = {
   oklart: 'Finansiering oklar',
 }
 
+export const objektTypLabel: Record<Objekt['objektTyp'], string> = {
+  bostadsratt: 'Bostadsrätt',
+  villa: 'Villa',
+  fritidshus: 'Fritidshus',
+}
+
 // Step 1 of the motor: classify the deal — this is what derives the moments.
 export function klassificera(
-  _objekt: Objekt,
+  objekt: Objekt,
   speculanter: Speculant[],
 ): DealKlass {
   const kopare = dealKopare(speculanter)
@@ -86,7 +92,7 @@ export function klassificera(
         ? 'lan'
         : 'oklart'
   return {
-    objektTyp: 'Bostadsrätt',
+    objektTyp: objektTypLabel[objekt.objektTyp],
     betalning,
     koparTyp: 'Privatperson',
     koparNamn: kopare?.namn ?? null,
@@ -311,7 +317,7 @@ export function kravMall(
     return krav
   }
   const budCount = speculanter.filter((s) => s.budgetMax !== null).length
-  return [
+  const krav: DokumentKrav[] = [
     {
       id: 'j_avtal',
       fraga: 'Uppdragsavtal',
@@ -363,6 +369,19 @@ export function kravMall(
       kalla: null,
     },
   ]
+  // Object-type moment: a villa requires a besiktning whose date is journalled.
+  if (objekt.objektTyp === 'villa') {
+    krav.splice(4, 0, {
+      id: 'j_besiktning',
+      fraga: 'Besiktning + datum',
+      beskrivning: 'Villa kräver besiktning – datumet förs in i journalen',
+      typ: 'fritext',
+      status: 'saknas',
+      varde: null,
+      kalla: null,
+    })
+  }
+  return krav
 }
 
 /** Completion 0–100 from satisfied requirements. */
