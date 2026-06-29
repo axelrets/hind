@@ -9,6 +9,7 @@ import { SpekulantProfil } from '@/screens/SpekulantProfil'
 import { DokumentDetalj } from '@/screens/DokumentDetalj'
 import { KoparRum } from '@/screens/KoparRum'
 import { KycDebug } from '@/screens/KycDebug'
+import { KycRum } from '@/screens/KycRum'
 import { Rum } from '@/screens/Rum'
 import { SynkaVitec } from '@/screens/SynkaVitec'
 import { Assistent } from '@/screens/Assistent'
@@ -19,7 +20,8 @@ function AppShell() {
     location.pathname.startsWith('/debrief') ||
     location.pathname.startsWith('/synka') ||
     location.pathname.startsWith('/assistent') ||
-    location.pathname.startsWith('/r/')
+    location.pathname.startsWith('/r/') ||
+    location.pathname.startsWith('/kyc/rum')
 
   return (
     <MobileFrame>
@@ -34,6 +36,7 @@ function AppShell() {
             <Route path="/dokument/:id" element={<DokumentDetalj />} />
             <Route path="/r/:id" element={<KoparRum />} />
             <Route path="/kyc" element={<KycDebug />} />
+            <Route path="/kyc/rum" element={<KycRum />} />
             <Route path="/debrief" element={<Rum />} />
             <Route path="/synka" element={<SynkaVitec />} />
             <Route path="/assistent" element={<Assistent />} />

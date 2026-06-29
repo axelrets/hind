@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { Badge } from '@/components/ui/badge'
 import { buildSlots } from '@/lib/kyc/slots'
@@ -55,9 +57,18 @@ export function KycDebug() {
           <Toggle value={objectType} set={setObjectType} opts={[['villa', 'Villa'], ['bostadsratt', 'Bostadsrätt']]} />
         </div>
 
-        <p className="text-sm text-muted-foreground">
-          {slots.length} moment härledda · {required} kräver bevis
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            {slots.length} moment härledda · {required} kräver bevis
+          </p>
+          <Link
+            to="/kyc/rum"
+            className="flex shrink-0 items-center gap-1 rounded-full bg-primary px-3.5 py-1.5 text-xs font-semibold text-primary-foreground transition active:scale-95"
+          >
+            Öppna rummet
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
 
         <ol className="space-y-2">
           {slots.map((s, i) => (
