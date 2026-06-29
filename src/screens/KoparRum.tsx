@@ -15,6 +15,29 @@ import { cn } from '@/lib/utils'
 // Source-of-funds moments — Hind chases a vague first answer for detail.
 const SOF = new Set(['k_kontantinsats', 'k_kallkontroll', 'k_ursprung'])
 
+// A targeted follow-up based on what kind of source the buyer named.
+function sofFollowup(answer: string): string {
+  const a = answer.toLowerCase()
+  if (/spar|sparkonto|buffert/.test(a))
+    return 'Vilken bank och sparform, och över hur lång tid har du sparat ihop beloppet?'
+  if (/arv|ärvd|ärvt|dödsbo/.test(a))
+    return 'Från vem kommer arvet och vilket år, och är arvskiftet klart?'
+  if (/sål|salj|försälj|bostad|lägenhet|hus|villa|radhus/.test(a))
+    return 'Vilken bostad eller tillgång sålde du, vilket år och till vilket belopp?'
+  if (/aktie|fond|värdepapper|krypto/.test(a))
+    return 'Vilket innehav sålde du, och varifrån kom kapitalet du ursprungligen investerade?'
+  if (/gåva|gava|present/.test(a))
+    return 'Från vem kommer gåvan, och finns det ett gåvobrev?'
+  if (/lön|lon|inkomst|jobb|arbet/.test(a))
+    return 'Ungefär vilken inkomst, och hur lång tid har du sparat ihop beloppet?'
+  return 'Kan du specificera källan lite mer – bank, belopp och tidsperiod?'
+}
+
+// A first answer is accepted as-is only if it's already specific.
+function isDetailed(answer: string): boolean {
+  return answer.trim().length >= 40 && /\d/.test(answer)
+}
+
 export function KoparRum() {
   const { id } = useParams()
   const dok = useStore((s) => s.dokument.find((d) => d.id === id))
@@ -56,7 +79,7 @@ export function KoparRum() {
         setText('')
         return
       }
-      if (ans.length < 30) {
+      if (!isDetailed(ans)) {
         setPending({ kravId: current.id, first: ans })
         setText('')
         return
@@ -112,7 +135,7 @@ export function KoparRum() {
               <div className="rounded-2xl rounded-tl-sm border border-border bg-card px-3.5 py-2.5 shadow-sm">
                 <p className="text-sm font-medium leading-snug">
                   {chasing
-                    ? `Tack – du skrev ”${pending!.first}”. Kan du specificera lite mer? Vilken bank eller källa, och över vilken period?`
+                    ? `Tack – du skrev ”${pending!.first}”. ${sofFollowup(pending!.first)}`
                     : current.fraga}
                 </p>
                 {!chasing && current.beskrivning && (
