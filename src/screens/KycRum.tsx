@@ -17,6 +17,7 @@ import {
   submitAnswer,
   uploadFile,
   deferSlot,
+  confirmAnswer,
   sign,
   specOf,
   dod,
@@ -279,6 +280,25 @@ export function KycRum() {
             <ShieldCheck className="size-5" />
             Signera med BankID
           </button>
+        ) : session.confirming ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => run((s) => confirmAnswer(s, true))}
+              className="flex-1 rounded-full bg-indigo-600 py-2.5 text-sm font-semibold text-white shadow-sm transition active:scale-95 disabled:opacity-50"
+            >
+              Ja, stämmer
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => run((s) => confirmAnswer(s, false))}
+              className="flex-1 rounded-full border border-border bg-card py-2.5 text-sm font-medium shadow-sm transition active:scale-95 disabled:opacity-50"
+            >
+              Nej
+            </button>
+          </div>
         ) : current?.inputKind === 'choice' ? (
           <div className="space-y-2">
             <div className="flex flex-wrap gap-2">

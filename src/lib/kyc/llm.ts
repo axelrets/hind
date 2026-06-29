@@ -10,8 +10,12 @@ export interface JudgeResult {
   satisfied: boolean
   missing: string[]
   followUp: string | null
-  confidence: number // 0–1
+  confidence: number // 0–1; below CONFIRM_THRESHOLD → controller asks a confirm
+  flags?: string[] // risk/attention flags surfaced to the agent (PEP, foreign, …)
 }
+
+// Below this, the Judge is not confident enough to silently pass — confirm first.
+export const CONFIRM_THRESHOLD = 0.7
 
 export interface LLMClient {
   /** Phrase the active slot warmly; answer a buyer question if asked. */
@@ -74,12 +78,35 @@ export const mockLLM: LLMClient = {
       }
     }
 
-    const satisfied = hasValue && evidenceOk
+    // Choice answers are explicit (high confidence); some raise an agent flag.
+    if (spec.inputKind === 'choice') {
+      const yes = /\bja\b/i.test(text)
+      const flags: string[] = []
+      if (spec.key === 'control.pep' && yes) flags.push('PEP – kräver skärpta åtgärder')
+      if (spec.key === 'countries.tax_residency' && yes)
+        flags.push('Skatterättslig hemvist utanför Sverige')
+      if (spec.key === 'countries.citizenship' && yes) flags.push('Dubbelt medborgarskap')
+      if (spec.key === 'control.ombud' && yes) flags.push('Företräds av ombud')
+      if (spec.key === 'control.beneficial_owner' && /annans/i.test(text))
+        flags.push('Köper för annans räkning – verklig huvudman måste fastställas')
+      return { satisfied: hasValue, missing: hasValue ? [] : ['value'], followUp: null, confidence: 0.92, flags }
+    }
+
+    // File slots — satisfied once evidence is attached.
+    if (spec.inputKind === 'file') {
+      const ok = evidenceCount > 0
+      return { satisfied: ok, missing: ok ? [] : ['evidence'], followUp: null, confidence: ok ? 0.9 : 0.3 }
+    }
+
+    // Free text — confidence scales with specificity; a thin answer is satisfied
+    // but low-confidence, so the controller confirms rather than silently passing.
+    if (!hasValue) return { satisfied: false, missing: ['value'], followUp: null, confidence: 0.2 }
+    const conf = text.trim().length >= 12 ? 0.85 : 0.55
     return {
-      satisfied,
-      missing: satisfied ? [] : needsEvidence && evidenceCount === 0 ? ['evidence'] : ['value'],
-      followUp: satisfied ? null : null,
-      confidence: satisfied ? 0.85 : 0.3,
+      satisfied: evidenceOk,
+      missing: evidenceOk ? [] : ['evidence'],
+      followUp: null,
+      confidence: evidenceOk ? conf : 0.5,
     }
   },
 }

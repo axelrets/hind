@@ -1,6 +1,6 @@
 import type { Deal, Slot, SlotSpec, Message, SessionDoD } from './types'
 import { buildSlots, initSlots, computeDoD } from './slots'
-import { mockLLM, type LLMClient } from './llm'
+import { mockLLM, CONFIRM_THRESHOLD, type LLMClient } from './llm'
 import { uid } from '../utils'
 
 // The room controller (spec §3): a goal-directed state machine over the slot
@@ -15,6 +15,7 @@ export interface KycSession {
   slots: Slot[]
   messages: Message[]
   currentKey: string | null
+  confirming: string | null // slot key awaiting a low-confidence confirm
   status: 'active' | 'review' | 'signed'
 }
 
@@ -80,6 +81,7 @@ export async function createSession(deal: Deal, llm: LLMClient = mockLLM): Promi
     slots: initSlots(specs),
     messages: [],
     currentKey: null,
+    confirming: null,
     status: 'active',
   }
   base.messages.push(
@@ -106,19 +108,69 @@ export async function submitAnswer(
   const value = await llm.extract(spec, input.trim())
   const slot = slotOf(session, key)
   const judged = await llm.judge(spec, value, slot.evidence.length)
+  const flags = [...slot.flags, ...(judged.flags ?? [])]
 
   if (judged.satisfied) {
-    session = updateSlot(session, key, { status: 'satisfied', value, confidence: judged.confidence })
+    // Low confidence → confirm rather than silently pass.
+    if (judged.confidence < CONFIRM_THRESHOLD) {
+      session = updateSlot(session, key, { value, confidence: judged.confidence, flags })
+      return {
+        ...session,
+        confirming: key,
+        messages: [
+          ...session.messages,
+          m(s.id, 'agent', `Bara så jag förstår rätt – du skrev ”${input.trim()}”. Stämmer det?`, key),
+        ],
+      }
+    }
+    session = updateSlot(session, key, { status: 'satisfied', value, confidence: judged.confidence, flags })
     return advance(session, llm)
   }
-  // Not satisfied → chase with a follow-up, stay on the slot.
-  session = updateSlot(session, key, {
-    value,
-    confidence: judged.confidence,
-    followUpCount: slot.followUpCount + 1,
-  })
+
+  // Not satisfied → chase; cap it so the buyer is never trapped (soft gate).
+  const fc = slot.followUpCount + 1
+  if (fc >= 3) {
+    session = updateSlot(session, key, {
+      status: 'flagged',
+      value,
+      flags: [...flags, 'oklart efter uppföljning'],
+      followUpCount: fc,
+    })
+    session = { ...session, messages: [...session.messages, m(s.id, 'agent', 'Vi låter din mäklare titta på den här – vi går vidare.')] }
+    return advance(session, llm)
+  }
+  session = updateSlot(session, key, { value, confidence: judged.confidence, followUpCount: fc })
   const followUp = judged.followUp ?? spec.question
   return { ...session, messages: [...session.messages, m(s.id, 'agent', followUp, key)] }
+}
+
+/** Resolve a low-confidence confirm: yes → satisfied; no → re-ask the slot. */
+export async function confirmAnswer(
+  s: KycSession,
+  yes: boolean,
+  llm: LLMClient = mockLLM,
+): Promise<KycSession> {
+  const key = s.confirming
+  if (!key) return s
+  if (yes) {
+    const session = updateSlot(
+      { ...s, confirming: null, messages: [...s.messages, m(s.id, 'buyer', 'Ja, stämmer', key)] },
+      key,
+      { status: 'satisfied', confidence: 0.9 },
+    )
+    return advance(session, llm)
+  }
+  const spec = specOf(s, key)
+  return {
+    ...s,
+    confirming: null,
+    messages: [
+      ...s.messages,
+      m(s.id, 'buyer', 'Nej', key),
+      m(s.id, 'agent', 'Inga problem – beskriv gärna lite tydligare.', key),
+      m(s.id, 'agent', spec?.question ?? 'Försök igen.', key),
+    ],
+  }
 }
 
 /** Buyer uploaded a document for the active slot. */
