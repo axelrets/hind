@@ -2,6 +2,8 @@
 // a legitimate, evidenced origin. Vague answers are never accepted as final.
 // Data, not code — new origins can be added without touching the engine.
 
+import type { SlotSpec } from './types'
+
 export interface OriginType {
   key: string
   label: string
@@ -13,6 +15,19 @@ export interface OriginType {
 }
 
 export const ORIGIN_TAXONOMY: OriginType[] = [
+  {
+    // Checked before property_sale so "sålde aktier/fonder" is securities, not
+    // a property sale (the generic "sål" would otherwise win).
+    key: 'securities',
+    label: 'Försäljning av värdepapper',
+    match: /aktie|fond|värdepapper|krypto|bitcoin|portfölj/i,
+    followUps: [
+      'Vilket år sålde du, och varifrån kom kapitalet du ursprungligen investerade?',
+    ],
+    evidence: 'Avräkningsnota',
+    guidanceType: 'source_of_funds',
+    recurses: true,
+  },
   {
     key: 'property_sale',
     label: 'Försäljning av bostad',
@@ -48,17 +63,6 @@ export const ORIGIN_TAXONOMY: OriginType[] = [
     guidanceType: 'source_of_funds',
   },
   {
-    key: 'securities',
-    label: 'Försäljning av värdepapper',
-    match: /aktie|fond|värdepapper|krypto|bitcoin|portfölj/i,
-    followUps: [
-      'Vilket år sålde du, och varifrån kom kapitalet du ursprungligen investerade?',
-    ],
-    evidence: 'Avräkningsnota',
-    guidanceType: 'source_of_funds',
-    recurses: true,
-  },
-  {
     key: 'salary',
     label: 'Lön / inkomst',
     match: /lön|lon|inkomst|jobb|arbet|anställ/i,
@@ -85,4 +89,29 @@ export function originFollowUp(text: string): string {
 export function originIsSpecific(text: string): boolean {
   const t = text.trim()
   return classifyOrigin(t) !== null && t.length >= 40 && /\d/.test(t)
+}
+
+/** Does the declared origin need its own source traced (recursion §5)? */
+export function originRecurses(bucketKey: string | null): boolean {
+  return ORIGIN_TAXONOMY.some((o) => o.key === bucketKey && o.recurses === true)
+}
+
+/** A child source-of-funds slot tracing where an investment's capital came
+ *  from. It is itself a source-of-funds slot, so it chases — and recurses
+ *  again if that capital was also securities — until the chain bottoms out. */
+export function makeChildSourceSlot(parentKey: string): SlotSpec {
+  return {
+    key: `${parentKey}.kapital`,
+    question: 'Och varifrån kom kapitalet du ursprungligen investerade?',
+    whyItMatters: 'Källan måste spåras hela vägen till en laglig grund.',
+    inputKind: 'text',
+    evidenceRequired: 'optional',
+    guidanceType: 'source_of_funds',
+    validation: {
+      deterministic: ['originBucketIdentified'],
+      rubric:
+        'Satisfied when the invested capital traces to a concrete legitimate origin.',
+    },
+    parentKey,
+  }
 }

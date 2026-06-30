@@ -55,7 +55,8 @@ const LABELS: Record<string, string> = {
   'company.beneficial_owner': 'Huvudman (bolag)',
   attestation: 'Signering',
 }
-const label = (k: string) => LABELS[k] ?? k
+const label = (k: string) =>
+  LABELS[k] ?? (k.includes('.kapital') ? 'Kapitalets ursprung' : k)
 
 function uploadName(g?: string): string {
   if (g === 'loan_promise') return 'lanelofte.pdf'

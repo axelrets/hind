@@ -1,5 +1,6 @@
 import type { Deal, Slot, SlotSpec, Message, SessionDoD } from './types'
 import { buildSlots, initSlots, computeDoD } from './slots'
+import { makeChildSourceSlot, originRecurses } from './sourceOfFunds'
 import { mockLLM, CONFIRM_THRESHOLD, type LLMClient } from './llm'
 import { uid } from '../utils'
 
@@ -41,6 +42,51 @@ function updateSlot(s: KycSession, key: string, patch: Partial<Slot>): KycSessio
 function nextPending(s: KycSession): string | null {
   const sl = s.slots.find((x) => x.status === 'pending' || x.status === 'in_progress')
   return sl ? sl.key : null
+}
+
+function insertAfter<T>(arr: T[], afterKey: string, item: T, keyOf: (x: T) => string): T[] {
+  const i = arr.findIndex((x) => keyOf(x) === afterKey)
+  return i < 0 ? [...arr, item] : [...arr.slice(0, i + 1), item, ...arr.slice(i + 1)]
+}
+
+const MAX_SOF_DEPTH = 3
+
+// Source-of-funds recursion (spec §5): if a satisfied origin itself needs
+// tracing (securities), spawn a child slot for the invested capital right after
+// it. The child is a source-of-funds slot too, so it chases — and recurses
+// again — until the chain bottoms out at a non-recursing, evidenced origin.
+function maybeRecurse(s: KycSession, key: string): KycSession {
+  const spec = specOf(s, key)
+  if (!spec || spec.guidanceType !== 'source_of_funds') return s
+  const slot = slotOf(s, key)
+  const bucket =
+    slot.value && typeof slot.value === 'object'
+      ? ((slot.value as Record<string, unknown>).originBucket as string | null)
+      : null
+  if (!originRecurses(bucket)) return s
+
+  const childKey = `${key}.kapital`
+  if (s.specs.some((sp) => sp.key === childKey)) return s // already spawned
+  if ((key.match(/\.kapital/g)?.length ?? 0) >= MAX_SOF_DEPTH) return s // cap depth
+
+  const childSlot: Slot = {
+    key: childKey,
+    status: 'pending',
+    value: null,
+    confidence: 0,
+    evidence: [],
+    flags: [],
+    followUpCount: 0,
+  }
+  return {
+    ...s,
+    specs: insertAfter(s.specs, key, makeChildSourceSlot(key), (x) => x.key),
+    slots: insertAfter(s.slots, key, childSlot, (x) => x.key),
+    messages: [
+      ...s.messages,
+      m(s.id, 'agent', 'Tack! Eftersom det rör värdepapper följer jag kapitalet ett steg till.'),
+    ],
+  }
 }
 
 /** Move to the next unsatisfied slot and have the Talker phrase it. */
@@ -124,6 +170,7 @@ export async function submitAnswer(
       }
     }
     session = updateSlot(session, key, { status: 'satisfied', value, confidence: judged.confidence, flags })
+    session = maybeRecurse(session, key)
     return advance(session, llm)
   }
 
@@ -194,6 +241,7 @@ export async function uploadFile(
   const judged = await llm.judge(spec, slot.value ?? filename, slot.evidence.length)
   if (judged.satisfied) {
     session = updateSlot(session, key, { status: 'satisfied', confidence: judged.confidence })
+    session = maybeRecurse(session, key)
     return advance(session, llm)
   }
   session = updateSlot(session, key, { followUpCount: slot.followUpCount + 1 })
